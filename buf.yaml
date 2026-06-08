@@ -4,6 +4,14 @@ modules:
 lint:
   use:
     - STANDARD
+  except:
+    # The API deliberately reuses some message types across RPCs (e.g. Login and
+    # Refresh both return TokenPair; Create/Update role both return Role) and uses
+    # shared request/response messages (EmailRequest, GenericResponse). These are
+    # intentional design choices, so the per-RPC unique/standard-name rules are off.
+    - RPC_REQUEST_RESPONSE_UNIQUE
+    - RPC_REQUEST_STANDARD_NAME
+    - RPC_RESPONSE_STANDARD_NAME
 breaking:
   use:
     - FILE
