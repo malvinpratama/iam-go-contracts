@@ -19,27 +19,33 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Register_FullMethodName                 = "/auth.v1.AuthService/Register"
-	AuthService_Login_FullMethodName                    = "/auth.v1.AuthService/Login"
-	AuthService_Refresh_FullMethodName                  = "/auth.v1.AuthService/Refresh"
-	AuthService_Logout_FullMethodName                   = "/auth.v1.AuthService/Logout"
-	AuthService_ValidateToken_FullMethodName            = "/auth.v1.AuthService/ValidateToken"
-	AuthService_DeleteUser_FullMethodName               = "/auth.v1.AuthService/DeleteUser"
-	AuthService_CreateRole_FullMethodName               = "/auth.v1.AuthService/CreateRole"
-	AuthService_UpdateRole_FullMethodName               = "/auth.v1.AuthService/UpdateRole"
-	AuthService_DeleteRole_FullMethodName               = "/auth.v1.AuthService/DeleteRole"
-	AuthService_ListRoles_FullMethodName                = "/auth.v1.AuthService/ListRoles"
-	AuthService_AssignRole_FullMethodName               = "/auth.v1.AuthService/AssignRole"
-	AuthService_RevokeRole_FullMethodName               = "/auth.v1.AuthService/RevokeRole"
-	AuthService_ListPermissions_FullMethodName          = "/auth.v1.AuthService/ListPermissions"
-	AuthService_GrantPermission_FullMethodName          = "/auth.v1.AuthService/GrantPermission"
-	AuthService_RevokePermission_FullMethodName         = "/auth.v1.AuthService/RevokePermission"
-	AuthService_RequestEmailVerification_FullMethodName = "/auth.v1.AuthService/RequestEmailVerification"
-	AuthService_VerifyEmail_FullMethodName              = "/auth.v1.AuthService/VerifyEmail"
-	AuthService_RequestPasswordReset_FullMethodName     = "/auth.v1.AuthService/RequestPasswordReset"
-	AuthService_ResetPassword_FullMethodName            = "/auth.v1.AuthService/ResetPassword"
-	AuthService_ListAuditEvents_FullMethodName          = "/auth.v1.AuthService/ListAuditEvents"
-	AuthService_GetJwks_FullMethodName                  = "/auth.v1.AuthService/GetJwks"
+	AuthService_Register_FullMethodName                  = "/auth.v1.AuthService/Register"
+	AuthService_Login_FullMethodName                     = "/auth.v1.AuthService/Login"
+	AuthService_Refresh_FullMethodName                   = "/auth.v1.AuthService/Refresh"
+	AuthService_Logout_FullMethodName                    = "/auth.v1.AuthService/Logout"
+	AuthService_ValidateToken_FullMethodName             = "/auth.v1.AuthService/ValidateToken"
+	AuthService_DeleteUser_FullMethodName                = "/auth.v1.AuthService/DeleteUser"
+	AuthService_CreateRole_FullMethodName                = "/auth.v1.AuthService/CreateRole"
+	AuthService_UpdateRole_FullMethodName                = "/auth.v1.AuthService/UpdateRole"
+	AuthService_DeleteRole_FullMethodName                = "/auth.v1.AuthService/DeleteRole"
+	AuthService_ListRoles_FullMethodName                 = "/auth.v1.AuthService/ListRoles"
+	AuthService_AssignRole_FullMethodName                = "/auth.v1.AuthService/AssignRole"
+	AuthService_RevokeRole_FullMethodName                = "/auth.v1.AuthService/RevokeRole"
+	AuthService_ListPermissions_FullMethodName           = "/auth.v1.AuthService/ListPermissions"
+	AuthService_GrantPermission_FullMethodName           = "/auth.v1.AuthService/GrantPermission"
+	AuthService_RevokePermission_FullMethodName          = "/auth.v1.AuthService/RevokePermission"
+	AuthService_RequestEmailVerification_FullMethodName  = "/auth.v1.AuthService/RequestEmailVerification"
+	AuthService_VerifyEmail_FullMethodName               = "/auth.v1.AuthService/VerifyEmail"
+	AuthService_RequestPasswordReset_FullMethodName      = "/auth.v1.AuthService/RequestPasswordReset"
+	AuthService_ResetPassword_FullMethodName             = "/auth.v1.AuthService/ResetPassword"
+	AuthService_ListAuditEvents_FullMethodName           = "/auth.v1.AuthService/ListAuditEvents"
+	AuthService_GetJwks_FullMethodName                   = "/auth.v1.AuthService/GetJwks"
+	AuthService_GetClient_FullMethodName                 = "/auth.v1.AuthService/GetClient"
+	AuthService_CreateAuthorizationCode_FullMethodName   = "/auth.v1.AuthService/CreateAuthorizationCode"
+	AuthService_GetConsent_FullMethodName                = "/auth.v1.AuthService/GetConsent"
+	AuthService_SaveConsent_FullMethodName               = "/auth.v1.AuthService/SaveConsent"
+	AuthService_ExchangeAuthorizationCode_FullMethodName = "/auth.v1.AuthService/ExchangeAuthorizationCode"
+	AuthService_RegisterClient_FullMethodName            = "/auth.v1.AuthService/RegisterClient"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -76,6 +82,13 @@ type AuthServiceClient interface {
 	ListAuditEvents(ctx context.Context, in *ListAuditEventsRequest, opts ...grpc.CallOption) (*ListAuditEventsResponse, error)
 	// OIDC (v0.7): public signing keys (JWKS) for relying parties to verify tokens.
 	GetJwks(ctx context.Context, in *GetJwksRequest, opts ...grpc.CallOption) (*GetJwksResponse, error)
+	// OIDC Authorization Code + PKCE flow.
+	GetClient(ctx context.Context, in *GetClientRequest, opts ...grpc.CallOption) (*OAuthClient, error)
+	CreateAuthorizationCode(ctx context.Context, in *CreateAuthorizationCodeRequest, opts ...grpc.CallOption) (*CreateAuthorizationCodeResponse, error)
+	GetConsent(ctx context.Context, in *GetConsentRequest, opts ...grpc.CallOption) (*GetConsentResponse, error)
+	SaveConsent(ctx context.Context, in *SaveConsentRequest, opts ...grpc.CallOption) (*SaveConsentResponse, error)
+	ExchangeAuthorizationCode(ctx context.Context, in *ExchangeAuthorizationCodeRequest, opts ...grpc.CallOption) (*OidcTokenResponse, error)
+	RegisterClient(ctx context.Context, in *RegisterClientRequest, opts ...grpc.CallOption) (*RegisterClientResponse, error)
 }
 
 type authServiceClient struct {
@@ -296,6 +309,66 @@ func (c *authServiceClient) GetJwks(ctx context.Context, in *GetJwksRequest, opt
 	return out, nil
 }
 
+func (c *authServiceClient) GetClient(ctx context.Context, in *GetClientRequest, opts ...grpc.CallOption) (*OAuthClient, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OAuthClient)
+	err := c.cc.Invoke(ctx, AuthService_GetClient_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) CreateAuthorizationCode(ctx context.Context, in *CreateAuthorizationCodeRequest, opts ...grpc.CallOption) (*CreateAuthorizationCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateAuthorizationCodeResponse)
+	err := c.cc.Invoke(ctx, AuthService_CreateAuthorizationCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) GetConsent(ctx context.Context, in *GetConsentRequest, opts ...grpc.CallOption) (*GetConsentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConsentResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetConsent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) SaveConsent(ctx context.Context, in *SaveConsentRequest, opts ...grpc.CallOption) (*SaveConsentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveConsentResponse)
+	err := c.cc.Invoke(ctx, AuthService_SaveConsent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ExchangeAuthorizationCode(ctx context.Context, in *ExchangeAuthorizationCodeRequest, opts ...grpc.CallOption) (*OidcTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OidcTokenResponse)
+	err := c.cc.Invoke(ctx, AuthService_ExchangeAuthorizationCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) RegisterClient(ctx context.Context, in *RegisterClientRequest, opts ...grpc.CallOption) (*RegisterClientResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegisterClientResponse)
+	err := c.cc.Invoke(ctx, AuthService_RegisterClient_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -330,6 +403,13 @@ type AuthServiceServer interface {
 	ListAuditEvents(context.Context, *ListAuditEventsRequest) (*ListAuditEventsResponse, error)
 	// OIDC (v0.7): public signing keys (JWKS) for relying parties to verify tokens.
 	GetJwks(context.Context, *GetJwksRequest) (*GetJwksResponse, error)
+	// OIDC Authorization Code + PKCE flow.
+	GetClient(context.Context, *GetClientRequest) (*OAuthClient, error)
+	CreateAuthorizationCode(context.Context, *CreateAuthorizationCodeRequest) (*CreateAuthorizationCodeResponse, error)
+	GetConsent(context.Context, *GetConsentRequest) (*GetConsentResponse, error)
+	SaveConsent(context.Context, *SaveConsentRequest) (*SaveConsentResponse, error)
+	ExchangeAuthorizationCode(context.Context, *ExchangeAuthorizationCodeRequest) (*OidcTokenResponse, error)
+	RegisterClient(context.Context, *RegisterClientRequest) (*RegisterClientResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -402,6 +482,24 @@ func (UnimplementedAuthServiceServer) ListAuditEvents(context.Context, *ListAudi
 }
 func (UnimplementedAuthServiceServer) GetJwks(context.Context, *GetJwksRequest) (*GetJwksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetJwks not implemented")
+}
+func (UnimplementedAuthServiceServer) GetClient(context.Context, *GetClientRequest) (*OAuthClient, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetClient not implemented")
+}
+func (UnimplementedAuthServiceServer) CreateAuthorizationCode(context.Context, *CreateAuthorizationCodeRequest) (*CreateAuthorizationCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAuthorizationCode not implemented")
+}
+func (UnimplementedAuthServiceServer) GetConsent(context.Context, *GetConsentRequest) (*GetConsentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetConsent not implemented")
+}
+func (UnimplementedAuthServiceServer) SaveConsent(context.Context, *SaveConsentRequest) (*SaveConsentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveConsent not implemented")
+}
+func (UnimplementedAuthServiceServer) ExchangeAuthorizationCode(context.Context, *ExchangeAuthorizationCodeRequest) (*OidcTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExchangeAuthorizationCode not implemented")
+}
+func (UnimplementedAuthServiceServer) RegisterClient(context.Context, *RegisterClientRequest) (*RegisterClientResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RegisterClient not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -802,6 +900,114 @@ func _AuthService_GetJwks_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GetClient_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetClientRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetClient(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetClient_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetClient(ctx, req.(*GetClientRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_CreateAuthorizationCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAuthorizationCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).CreateAuthorizationCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_CreateAuthorizationCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).CreateAuthorizationCode(ctx, req.(*CreateAuthorizationCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_GetConsent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConsentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetConsent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetConsent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetConsent(ctx, req.(*GetConsentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_SaveConsent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveConsentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).SaveConsent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_SaveConsent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).SaveConsent(ctx, req.(*SaveConsentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ExchangeAuthorizationCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExchangeAuthorizationCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ExchangeAuthorizationCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ExchangeAuthorizationCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ExchangeAuthorizationCode(ctx, req.(*ExchangeAuthorizationCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_RegisterClient_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterClientRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RegisterClient(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_RegisterClient_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RegisterClient(ctx, req.(*RegisterClientRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -892,6 +1098,30 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetJwks",
 			Handler:    _AuthService_GetJwks_Handler,
+		},
+		{
+			MethodName: "GetClient",
+			Handler:    _AuthService_GetClient_Handler,
+		},
+		{
+			MethodName: "CreateAuthorizationCode",
+			Handler:    _AuthService_CreateAuthorizationCode_Handler,
+		},
+		{
+			MethodName: "GetConsent",
+			Handler:    _AuthService_GetConsent_Handler,
+		},
+		{
+			MethodName: "SaveConsent",
+			Handler:    _AuthService_SaveConsent_Handler,
+		},
+		{
+			MethodName: "ExchangeAuthorizationCode",
+			Handler:    _AuthService_ExchangeAuthorizationCode_Handler,
+		},
+		{
+			MethodName: "RegisterClient",
+			Handler:    _AuthService_RegisterClient_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
