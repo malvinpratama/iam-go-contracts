@@ -289,6 +289,7 @@ func (x *UpdateProfileRequest) GetPhone() string {
 type DeleteProfileRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Hard          bool                   `protobuf:"varint,2,opt,name=hard,proto3" json:"hard,omitempty"` // v0.9: true = permanent delete; false (default) = soft-delete
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -330,6 +331,57 @@ func (x *DeleteProfileRequest) GetUserId() string {
 	return ""
 }
 
+func (x *DeleteProfileRequest) GetHard() bool {
+	if x != nil {
+		return x.Hard
+	}
+	return false
+}
+
+type RestoreProfileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreProfileRequest) Reset() {
+	*x = RestoreProfileRequest{}
+	mi := &file_user_v1_user_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreProfileRequest) ProtoMessage() {}
+
+func (x *RestoreProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreProfileRequest.ProtoReflect.Descriptor instead.
+func (*RestoreProfileRequest) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *RestoreProfileRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 type DeleteProfileResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -339,7 +391,7 @@ type DeleteProfileResponse struct {
 
 func (x *DeleteProfileResponse) Reset() {
 	*x = DeleteProfileResponse{}
-	mi := &file_user_v1_user_proto_msgTypes[5]
+	mi := &file_user_v1_user_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -351,7 +403,7 @@ func (x *DeleteProfileResponse) String() string {
 func (*DeleteProfileResponse) ProtoMessage() {}
 
 func (x *DeleteProfileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_v1_user_proto_msgTypes[5]
+	mi := &file_user_v1_user_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -364,7 +416,7 @@ func (x *DeleteProfileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProfileResponse.ProtoReflect.Descriptor instead.
 func (*DeleteProfileResponse) Descriptor() ([]byte, []int) {
-	return file_user_v1_user_proto_rawDescGZIP(), []int{5}
+	return file_user_v1_user_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *DeleteProfileResponse) GetSuccess() bool {
@@ -385,7 +437,7 @@ type ListProfilesRequest struct {
 
 func (x *ListProfilesRequest) Reset() {
 	*x = ListProfilesRequest{}
-	mi := &file_user_v1_user_proto_msgTypes[6]
+	mi := &file_user_v1_user_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -397,7 +449,7 @@ func (x *ListProfilesRequest) String() string {
 func (*ListProfilesRequest) ProtoMessage() {}
 
 func (x *ListProfilesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_v1_user_proto_msgTypes[6]
+	mi := &file_user_v1_user_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -410,7 +462,7 @@ func (x *ListProfilesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProfilesRequest.ProtoReflect.Descriptor instead.
 func (*ListProfilesRequest) Descriptor() ([]byte, []int) {
-	return file_user_v1_user_proto_rawDescGZIP(), []int{6}
+	return file_user_v1_user_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListProfilesRequest) GetPage() int32 {
@@ -446,7 +498,7 @@ type ListProfilesResponse struct {
 
 func (x *ListProfilesResponse) Reset() {
 	*x = ListProfilesResponse{}
-	mi := &file_user_v1_user_proto_msgTypes[7]
+	mi := &file_user_v1_user_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +510,7 @@ func (x *ListProfilesResponse) String() string {
 func (*ListProfilesResponse) ProtoMessage() {}
 
 func (x *ListProfilesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_v1_user_proto_msgTypes[7]
+	mi := &file_user_v1_user_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +523,7 @@ func (x *ListProfilesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProfilesResponse.ProtoReflect.Descriptor instead.
 func (*ListProfilesResponse) Descriptor() ([]byte, []int) {
-	return file_user_v1_user_proto_rawDescGZIP(), []int{7}
+	return file_user_v1_user_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListProfilesResponse) GetProfiles() []*Profile {
@@ -533,8 +585,11 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\r_display_nameB\x06\n" +
 	"\x04_bioB\r\n" +
 	"\v_avatar_urlB\b\n" +
-	"\x06_phone\"/\n" +
+	"\x06_phone\"C\n" +
 	"\x14DeleteProfileRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
+	"\x04hard\x18\x02 \x01(\bR\x04hard\"0\n" +
+	"\x15RestoreProfileRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"1\n" +
 	"\x15DeleteProfileResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"\\\n" +
@@ -546,13 +601,14 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\bprofiles\x18\x01 \x03(\v2\x10.user.v1.ProfileR\bprofiles\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize2\xea\x02\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize2\xbc\x03\n" +
 	"\vUserService\x12@\n" +
 	"\rCreateProfile\x12\x1d.user.v1.CreateProfileRequest\x1a\x10.user.v1.Profile\x12:\n" +
 	"\n" +
 	"GetProfile\x12\x1a.user.v1.GetProfileRequest\x1a\x10.user.v1.Profile\x12@\n" +
 	"\rUpdateProfile\x12\x1d.user.v1.UpdateProfileRequest\x1a\x10.user.v1.Profile\x12N\n" +
-	"\rDeleteProfile\x12\x1d.user.v1.DeleteProfileRequest\x1a\x1e.user.v1.DeleteProfileResponse\x12K\n" +
+	"\rDeleteProfile\x12\x1d.user.v1.DeleteProfileRequest\x1a\x1e.user.v1.DeleteProfileResponse\x12P\n" +
+	"\x0eRestoreProfile\x12\x1e.user.v1.RestoreProfileRequest\x1a\x1e.user.v1.DeleteProfileResponse\x12K\n" +
 	"\fListProfiles\x12\x1c.user.v1.ListProfilesRequest\x1a\x1d.user.v1.ListProfilesResponseB>Z<github.com/malvinpratama/iam-go-contracts/gen/user/v1;userv1b\x06proto3"
 
 var (
@@ -567,16 +623,17 @@ func file_user_v1_user_proto_rawDescGZIP() []byte {
 	return file_user_v1_user_proto_rawDescData
 }
 
-var file_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_user_v1_user_proto_goTypes = []any{
 	(*Profile)(nil),               // 0: user.v1.Profile
 	(*CreateProfileRequest)(nil),  // 1: user.v1.CreateProfileRequest
 	(*GetProfileRequest)(nil),     // 2: user.v1.GetProfileRequest
 	(*UpdateProfileRequest)(nil),  // 3: user.v1.UpdateProfileRequest
 	(*DeleteProfileRequest)(nil),  // 4: user.v1.DeleteProfileRequest
-	(*DeleteProfileResponse)(nil), // 5: user.v1.DeleteProfileResponse
-	(*ListProfilesRequest)(nil),   // 6: user.v1.ListProfilesRequest
-	(*ListProfilesResponse)(nil),  // 7: user.v1.ListProfilesResponse
+	(*RestoreProfileRequest)(nil), // 5: user.v1.RestoreProfileRequest
+	(*DeleteProfileResponse)(nil), // 6: user.v1.DeleteProfileResponse
+	(*ListProfilesRequest)(nil),   // 7: user.v1.ListProfilesRequest
+	(*ListProfilesResponse)(nil),  // 8: user.v1.ListProfilesResponse
 }
 var file_user_v1_user_proto_depIdxs = []int32{
 	0, // 0: user.v1.ListProfilesResponse.profiles:type_name -> user.v1.Profile
@@ -584,14 +641,16 @@ var file_user_v1_user_proto_depIdxs = []int32{
 	2, // 2: user.v1.UserService.GetProfile:input_type -> user.v1.GetProfileRequest
 	3, // 3: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
 	4, // 4: user.v1.UserService.DeleteProfile:input_type -> user.v1.DeleteProfileRequest
-	6, // 5: user.v1.UserService.ListProfiles:input_type -> user.v1.ListProfilesRequest
-	0, // 6: user.v1.UserService.CreateProfile:output_type -> user.v1.Profile
-	0, // 7: user.v1.UserService.GetProfile:output_type -> user.v1.Profile
-	0, // 8: user.v1.UserService.UpdateProfile:output_type -> user.v1.Profile
-	5, // 9: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
-	7, // 10: user.v1.UserService.ListProfiles:output_type -> user.v1.ListProfilesResponse
-	6, // [6:11] is the sub-list for method output_type
-	1, // [1:6] is the sub-list for method input_type
+	5, // 5: user.v1.UserService.RestoreProfile:input_type -> user.v1.RestoreProfileRequest
+	7, // 6: user.v1.UserService.ListProfiles:input_type -> user.v1.ListProfilesRequest
+	0, // 7: user.v1.UserService.CreateProfile:output_type -> user.v1.Profile
+	0, // 8: user.v1.UserService.GetProfile:output_type -> user.v1.Profile
+	0, // 9: user.v1.UserService.UpdateProfile:output_type -> user.v1.Profile
+	6, // 10: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
+	6, // 11: user.v1.UserService.RestoreProfile:output_type -> user.v1.DeleteProfileResponse
+	8, // 12: user.v1.UserService.ListProfiles:output_type -> user.v1.ListProfilesResponse
+	7, // [7:13] is the sub-list for method output_type
+	1, // [1:7] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -609,7 +668,7 @@ func file_user_v1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_v1_user_proto_rawDesc), len(file_user_v1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
