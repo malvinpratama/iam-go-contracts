@@ -640,11 +640,15 @@ func (x *RefreshRequest) GetRefreshToken() string {
 }
 
 type TokenPair struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	ExpiresIn     int64                  `protobuf:"varint,3,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"` // access token TTL in seconds
-	TokenType     string                 `protobuf:"bytes,4,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`  // "Bearer"
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken  string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	ExpiresIn    int64                  `protobuf:"varint,3,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"` // access token TTL in seconds
+	TokenType    string                 `protobuf:"bytes,4,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`  // "Bearer"
+	// 2FA (v0.9): when mfa_required is true, access/refresh are empty and the
+	// client must call LoginTotp with mfa_token + a TOTP/recovery code.
+	MfaRequired   bool   `protobuf:"varint,5,opt,name=mfa_required,json=mfaRequired,proto3" json:"mfa_required,omitempty"`
+	MfaToken      string `protobuf:"bytes,6,opt,name=mfa_token,json=mfaToken,proto3" json:"mfa_token,omitempty"` // short-lived, signed; proves the password step passed
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -703,6 +707,20 @@ func (x *TokenPair) GetExpiresIn() int64 {
 func (x *TokenPair) GetTokenType() string {
 	if x != nil {
 		return x.TokenType
+	}
+	return ""
+}
+
+func (x *TokenPair) GetMfaRequired() bool {
+	if x != nil {
+		return x.MfaRequired
+	}
+	return false
+}
+
+func (x *TokenPair) GetMfaToken() string {
+	if x != nil {
+		return x.MfaToken
 	}
 	return ""
 }
@@ -806,6 +824,7 @@ func (x *LogoutResponse) GetSuccess() bool {
 type DeleteUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Hard          bool                   `protobuf:"varint,2,opt,name=hard,proto3" json:"hard,omitempty"` // v0.9: true = permanent delete; false (default) = soft-delete
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -845,6 +864,13 @@ func (x *DeleteUserRequest) GetUserId() string {
 		return x.UserId
 	}
 	return ""
+}
+
+func (x *DeleteUserRequest) GetHard() bool {
+	if x != nil {
+		return x.Hard
+	}
+	return false
 }
 
 type DeleteUserResponse struct {
@@ -2777,6 +2803,712 @@ func (x *RegisterClientResponse) GetClientSecret() string {
 	return ""
 }
 
+// EnrollTotp starts enrollment for the caller (identity from gRPC metadata):
+// generates a secret + recovery codes. Not active until ActivateTotp succeeds.
+type EnrollTotpRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnrollTotpRequest) Reset() {
+	*x = EnrollTotpRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnrollTotpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnrollTotpRequest) ProtoMessage() {}
+
+func (x *EnrollTotpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnrollTotpRequest.ProtoReflect.Descriptor instead.
+func (*EnrollTotpRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{52}
+}
+
+type EnrollTotpResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Secret        string                 `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`                                    // base32 TOTP secret (for manual entry)
+	OtpauthUri    string                 `protobuf:"bytes,2,opt,name=otpauth_uri,json=otpauthUri,proto3" json:"otpauth_uri,omitempty"`          // otpauth://totp/... (render as QR)
+	RecoveryCodes []string               `protobuf:"bytes,3,rep,name=recovery_codes,json=recoveryCodes,proto3" json:"recovery_codes,omitempty"` // one-time codes, shown once
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnrollTotpResponse) Reset() {
+	*x = EnrollTotpResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnrollTotpResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnrollTotpResponse) ProtoMessage() {}
+
+func (x *EnrollTotpResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnrollTotpResponse.ProtoReflect.Descriptor instead.
+func (*EnrollTotpResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *EnrollTotpResponse) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
+func (x *EnrollTotpResponse) GetOtpauthUri() string {
+	if x != nil {
+		return x.OtpauthUri
+	}
+	return ""
+}
+
+func (x *EnrollTotpResponse) GetRecoveryCodes() []string {
+	if x != nil {
+		return x.RecoveryCodes
+	}
+	return nil
+}
+
+type ActivateTotpRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"` // a current TOTP code, proving the authenticator is set up
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ActivateTotpRequest) Reset() {
+	*x = ActivateTotpRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActivateTotpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActivateTotpRequest) ProtoMessage() {}
+
+func (x *ActivateTotpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActivateTotpRequest.ProtoReflect.Descriptor instead.
+func (*ActivateTotpRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *ActivateTotpRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+type DisableTotpRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"` // a current TOTP or recovery code
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DisableTotpRequest) Reset() {
+	*x = DisableTotpRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DisableTotpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DisableTotpRequest) ProtoMessage() {}
+
+func (x *DisableTotpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DisableTotpRequest.ProtoReflect.Descriptor instead.
+func (*DisableTotpRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *DisableTotpRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+type LoginTotpRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MfaToken      string                 `protobuf:"bytes,1,opt,name=mfa_token,json=mfaToken,proto3" json:"mfa_token,omitempty"` // from the mfa_required login response
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`                         // TOTP or recovery code
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoginTotpRequest) Reset() {
+	*x = LoginTotpRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginTotpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginTotpRequest) ProtoMessage() {}
+
+func (x *LoginTotpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginTotpRequest.ProtoReflect.Descriptor instead.
+func (*LoginTotpRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *LoginTotpRequest) GetMfaToken() string {
+	if x != nil {
+		return x.MfaToken
+	}
+	return ""
+}
+
+func (x *LoginTotpRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+type ApiKey struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // key id / prefix (no secret)
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Scopes        []string               `protobuf:"bytes,3,rep,name=scopes,proto3" json:"scopes,omitempty"` // permission subset granted to the key
+	CreatedAt     string                 `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ExpiresAt     string                 `protobuf:"bytes,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`      // empty = no expiry
+	LastUsedAt    string                 `protobuf:"bytes,6,opt,name=last_used_at,json=lastUsedAt,proto3" json:"last_used_at,omitempty"` // empty = never used
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApiKey) Reset() {
+	*x = ApiKey{}
+	mi := &file_auth_v1_auth_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApiKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApiKey) ProtoMessage() {}
+
+func (x *ApiKey) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApiKey.ProtoReflect.Descriptor instead.
+func (*ApiKey) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *ApiKey) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ApiKey) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ApiKey) GetScopes() []string {
+	if x != nil {
+		return x.Scopes
+	}
+	return nil
+}
+
+func (x *ApiKey) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *ApiKey) GetExpiresAt() string {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return ""
+}
+
+func (x *ApiKey) GetLastUsedAt() string {
+	if x != nil {
+		return x.LastUsedAt
+	}
+	return ""
+}
+
+type CreateApiKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Scopes        []string               `protobuf:"bytes,2,rep,name=scopes,proto3" json:"scopes,omitempty"`                            // must be a subset of the caller's permissions
+	TtlSeconds    int64                  `protobuf:"varint,3,opt,name=ttl_seconds,json=ttlSeconds,proto3" json:"ttl_seconds,omitempty"` // 0 = no expiry
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateApiKeyRequest) Reset() {
+	*x = CreateApiKeyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateApiKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateApiKeyRequest) ProtoMessage() {}
+
+func (x *CreateApiKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateApiKeyRequest.ProtoReflect.Descriptor instead.
+func (*CreateApiKeyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *CreateApiKeyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateApiKeyRequest) GetScopes() []string {
+	if x != nil {
+		return x.Scopes
+	}
+	return nil
+}
+
+func (x *CreateApiKeyRequest) GetTtlSeconds() int64 {
+	if x != nil {
+		return x.TtlSeconds
+	}
+	return 0
+}
+
+type CreateApiKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Secret        string                 `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"` // full key (iamk_...), shown exactly once
+	Key           *ApiKey                `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateApiKeyResponse) Reset() {
+	*x = CreateApiKeyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateApiKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateApiKeyResponse) ProtoMessage() {}
+
+func (x *CreateApiKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateApiKeyResponse.ProtoReflect.Descriptor instead.
+func (*CreateApiKeyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *CreateApiKeyResponse) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
+func (x *CreateApiKeyResponse) GetKey() *ApiKey {
+	if x != nil {
+		return x.Key
+	}
+	return nil
+}
+
+type ListApiKeysRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListApiKeysRequest) Reset() {
+	*x = ListApiKeysRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[60]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListApiKeysRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListApiKeysRequest) ProtoMessage() {}
+
+func (x *ListApiKeysRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[60]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListApiKeysRequest.ProtoReflect.Descriptor instead.
+func (*ListApiKeysRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{60}
+}
+
+type ListApiKeysResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keys          []*ApiKey              `protobuf:"bytes,1,rep,name=keys,proto3" json:"keys,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListApiKeysResponse) Reset() {
+	*x = ListApiKeysResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListApiKeysResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListApiKeysResponse) ProtoMessage() {}
+
+func (x *ListApiKeysResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListApiKeysResponse.ProtoReflect.Descriptor instead.
+func (*ListApiKeysResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *ListApiKeysResponse) GetKeys() []*ApiKey {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
+}
+
+type RevokeApiKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeApiKeyRequest) Reset() {
+	*x = RevokeApiKeyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[62]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeApiKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeApiKeyRequest) ProtoMessage() {}
+
+func (x *RevokeApiKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[62]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeApiKeyRequest.ProtoReflect.Descriptor instead.
+func (*RevokeApiKeyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{62}
+}
+
+func (x *RevokeApiKeyRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type ValidateApiKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApiKey        string                 `protobuf:"bytes,1,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateApiKeyRequest) Reset() {
+	*x = ValidateApiKeyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[63]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateApiKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateApiKeyRequest) ProtoMessage() {}
+
+func (x *ValidateApiKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[63]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateApiKeyRequest.ProtoReflect.Descriptor instead.
+func (*ValidateApiKeyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{63}
+}
+
+func (x *ValidateApiKeyRequest) GetApiKey() string {
+	if x != nil {
+		return x.ApiKey
+	}
+	return ""
+}
+
+type ValidateApiKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Scopes        []string               `protobuf:"bytes,3,rep,name=scopes,proto3" json:"scopes,omitempty"` // effective: requested scopes ∩ user's current permissions
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateApiKeyResponse) Reset() {
+	*x = ValidateApiKeyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateApiKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateApiKeyResponse) ProtoMessage() {}
+
+func (x *ValidateApiKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateApiKeyResponse.ProtoReflect.Descriptor instead.
+func (*ValidateApiKeyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{64}
+}
+
+func (x *ValidateApiKeyResponse) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *ValidateApiKeyResponse) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *ValidateApiKeyResponse) GetScopes() []string {
+	if x != nil {
+		return x.Scopes
+	}
+	return nil
+}
+
+type RestoreUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreUserRequest) Reset() {
+	*x = RestoreUserRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[65]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreUserRequest) ProtoMessage() {}
+
+func (x *RestoreUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[65]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreUserRequest.ProtoReflect.Descriptor instead.
+func (*RestoreUserRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{65}
+}
+
+func (x *RestoreUserRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 var File_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_proto_rawDesc = "" +
@@ -2819,21 +3551,24 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"5\n" +
 	"\x0eRefreshRequest\x12#\n" +
-	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\x91\x01\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\xd1\x01\n" +
 	"\tTokenPair\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12\x1d\n" +
 	"\n" +
 	"expires_in\x18\x03 \x01(\x03R\texpiresIn\x12\x1d\n" +
 	"\n" +
-	"token_type\x18\x04 \x01(\tR\ttokenType\"W\n" +
+	"token_type\x18\x04 \x01(\tR\ttokenType\x12!\n" +
+	"\fmfa_required\x18\x05 \x01(\bR\vmfaRequired\x12\x1b\n" +
+	"\tmfa_token\x18\x06 \x01(\tR\bmfaToken\"W\n" +
 	"\rLogoutRequest\x12#\n" +
 	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\x12!\n" +
 	"\faccess_token\x18\x02 \x01(\tR\vaccessToken\"*\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\",\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"@\n" +
 	"\x11DeleteUserRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\".\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
+	"\x04hard\x18\x02 \x01(\bR\x04hard\".\n" +
 	"\x12DeleteUserResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"9\n" +
 	"\x14ValidateTokenRequest\x12!\n" +
@@ -2952,7 +3687,51 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x0fis_confidential\x18\x04 \x01(\bR\x0eisConfidential\"Z\n" +
 	"\x16RegisterClientResponse\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12#\n" +
-	"\rclient_secret\x18\x02 \x01(\tR\fclientSecret2\xc6\x0f\n" +
+	"\rclient_secret\x18\x02 \x01(\tR\fclientSecret\"\x13\n" +
+	"\x11EnrollTotpRequest\"t\n" +
+	"\x12EnrollTotpResponse\x12\x16\n" +
+	"\x06secret\x18\x01 \x01(\tR\x06secret\x12\x1f\n" +
+	"\votpauth_uri\x18\x02 \x01(\tR\n" +
+	"otpauthUri\x12%\n" +
+	"\x0erecovery_codes\x18\x03 \x03(\tR\rrecoveryCodes\")\n" +
+	"\x13ActivateTotpRequest\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\"(\n" +
+	"\x12DisableTotpRequest\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\"C\n" +
+	"\x10LoginTotpRequest\x12\x1b\n" +
+	"\tmfa_token\x18\x01 \x01(\tR\bmfaToken\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\"\xa4\x01\n" +
+	"\x06ApiKey\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
+	"\x06scopes\x18\x03 \x03(\tR\x06scopes\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x04 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x05 \x01(\tR\texpiresAt\x12 \n" +
+	"\flast_used_at\x18\x06 \x01(\tR\n" +
+	"lastUsedAt\"b\n" +
+	"\x13CreateApiKeyRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
+	"\x06scopes\x18\x02 \x03(\tR\x06scopes\x12\x1f\n" +
+	"\vttl_seconds\x18\x03 \x01(\x03R\n" +
+	"ttlSeconds\"Q\n" +
+	"\x14CreateApiKeyResponse\x12\x16\n" +
+	"\x06secret\x18\x01 \x01(\tR\x06secret\x12!\n" +
+	"\x03key\x18\x02 \x01(\v2\x0f.auth.v1.ApiKeyR\x03key\"\x14\n" +
+	"\x12ListApiKeysRequest\":\n" +
+	"\x13ListApiKeysResponse\x12#\n" +
+	"\x04keys\x18\x01 \x03(\v2\x0f.auth.v1.ApiKeyR\x04keys\"%\n" +
+	"\x13RevokeApiKeyRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"0\n" +
+	"\x15ValidateApiKeyRequest\x12\x17\n" +
+	"\aapi_key\x18\x01 \x01(\tR\x06apiKey\"_\n" +
+	"\x16ValidateApiKeyResponse\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x16\n" +
+	"\x06scopes\x18\x03 \x03(\tR\x06scopes\"-\n" +
+	"\x12RestoreUserRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId2\xcf\x14\n" +
 	"\vAuthService\x12?\n" +
 	"\bRegister\x12\x18.auth.v1.RegisterRequest\x1a\x19.auth.v1.RegisterResponse\x122\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x12.auth.v1.TokenPair\x126\n" +
@@ -2987,7 +3766,17 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"GetConsent\x12\x1a.auth.v1.GetConsentRequest\x1a\x1b.auth.v1.GetConsentResponse\x12H\n" +
 	"\vSaveConsent\x12\x1b.auth.v1.SaveConsentRequest\x1a\x1c.auth.v1.SaveConsentResponse\x12b\n" +
 	"\x19ExchangeAuthorizationCode\x12).auth.v1.ExchangeAuthorizationCodeRequest\x1a\x1a.auth.v1.OidcTokenResponse\x12Q\n" +
-	"\x0eRegisterClient\x12\x1e.auth.v1.RegisterClientRequest\x1a\x1f.auth.v1.RegisterClientResponseB>Z<github.com/malvinpratama/iam-go-contracts/gen/auth/v1;authv1b\x06proto3"
+	"\x0eRegisterClient\x12\x1e.auth.v1.RegisterClientRequest\x1a\x1f.auth.v1.RegisterClientResponse\x12E\n" +
+	"\n" +
+	"EnrollTotp\x12\x1a.auth.v1.EnrollTotpRequest\x1a\x1b.auth.v1.EnrollTotpResponse\x12F\n" +
+	"\fActivateTotp\x12\x1c.auth.v1.ActivateTotpRequest\x1a\x18.auth.v1.GenericResponse\x12D\n" +
+	"\vDisableTotp\x12\x1b.auth.v1.DisableTotpRequest\x1a\x18.auth.v1.GenericResponse\x12:\n" +
+	"\tLoginTotp\x12\x19.auth.v1.LoginTotpRequest\x1a\x12.auth.v1.TokenPair\x12K\n" +
+	"\fCreateApiKey\x12\x1c.auth.v1.CreateApiKeyRequest\x1a\x1d.auth.v1.CreateApiKeyResponse\x12H\n" +
+	"\vListApiKeys\x12\x1b.auth.v1.ListApiKeysRequest\x1a\x1c.auth.v1.ListApiKeysResponse\x12F\n" +
+	"\fRevokeApiKey\x12\x1c.auth.v1.RevokeApiKeyRequest\x1a\x18.auth.v1.GenericResponse\x12Q\n" +
+	"\x0eValidateApiKey\x12\x1e.auth.v1.ValidateApiKeyRequest\x1a\x1f.auth.v1.ValidateApiKeyResponse\x12D\n" +
+	"\vRestoreUser\x12\x1b.auth.v1.RestoreUserRequest\x1a\x18.auth.v1.GenericResponseB>Z<github.com/malvinpratama/iam-go-contracts/gen/auth/v1;authv1b\x06proto3"
 
 var (
 	file_auth_v1_auth_proto_rawDescOnce sync.Once
@@ -3001,7 +3790,7 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 	return file_auth_v1_auth_proto_rawDescData
 }
 
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 66)
 var file_auth_v1_auth_proto_goTypes = []any{
 	(*EmailRequest)(nil),                     // 0: auth.v1.EmailRequest
 	(*TokenRequest)(nil),                     // 1: auth.v1.TokenRequest
@@ -3055,71 +3844,105 @@ var file_auth_v1_auth_proto_goTypes = []any{
 	(*OidcTokenResponse)(nil),                // 49: auth.v1.OidcTokenResponse
 	(*RegisterClientRequest)(nil),            // 50: auth.v1.RegisterClientRequest
 	(*RegisterClientResponse)(nil),           // 51: auth.v1.RegisterClientResponse
+	(*EnrollTotpRequest)(nil),                // 52: auth.v1.EnrollTotpRequest
+	(*EnrollTotpResponse)(nil),               // 53: auth.v1.EnrollTotpResponse
+	(*ActivateTotpRequest)(nil),              // 54: auth.v1.ActivateTotpRequest
+	(*DisableTotpRequest)(nil),               // 55: auth.v1.DisableTotpRequest
+	(*LoginTotpRequest)(nil),                 // 56: auth.v1.LoginTotpRequest
+	(*ApiKey)(nil),                           // 57: auth.v1.ApiKey
+	(*CreateApiKeyRequest)(nil),              // 58: auth.v1.CreateApiKeyRequest
+	(*CreateApiKeyResponse)(nil),             // 59: auth.v1.CreateApiKeyResponse
+	(*ListApiKeysRequest)(nil),               // 60: auth.v1.ListApiKeysRequest
+	(*ListApiKeysResponse)(nil),              // 61: auth.v1.ListApiKeysResponse
+	(*RevokeApiKeyRequest)(nil),              // 62: auth.v1.RevokeApiKeyRequest
+	(*ValidateApiKeyRequest)(nil),            // 63: auth.v1.ValidateApiKeyRequest
+	(*ValidateApiKeyResponse)(nil),           // 64: auth.v1.ValidateApiKeyResponse
+	(*RestoreUserRequest)(nil),               // 65: auth.v1.RestoreUserRequest
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
 	5,  // 0: auth.v1.ListAuditEventsResponse.events:type_name -> auth.v1.AuditEvent
 	19, // 1: auth.v1.ListRolesResponse.roles:type_name -> auth.v1.Role
 	20, // 2: auth.v1.ListPermissionsResponse.permissions:type_name -> auth.v1.Permission
 	37, // 3: auth.v1.GetJwksResponse.keys:type_name -> auth.v1.Jwk
-	8,  // 4: auth.v1.AuthService.Register:input_type -> auth.v1.RegisterRequest
-	10, // 5: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	11, // 6: auth.v1.AuthService.Refresh:input_type -> auth.v1.RefreshRequest
-	13, // 7: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
-	17, // 8: auth.v1.AuthService.ValidateToken:input_type -> auth.v1.ValidateTokenRequest
-	15, // 9: auth.v1.AuthService.DeleteUser:input_type -> auth.v1.DeleteUserRequest
-	21, // 10: auth.v1.AuthService.CreateRole:input_type -> auth.v1.CreateRoleRequest
-	22, // 11: auth.v1.AuthService.UpdateRole:input_type -> auth.v1.UpdateRoleRequest
-	23, // 12: auth.v1.AuthService.DeleteRole:input_type -> auth.v1.DeleteRoleRequest
-	25, // 13: auth.v1.AuthService.ListRoles:input_type -> auth.v1.ListRolesRequest
-	27, // 14: auth.v1.AuthService.AssignRole:input_type -> auth.v1.AssignRoleRequest
-	29, // 15: auth.v1.AuthService.RevokeRole:input_type -> auth.v1.RevokeRoleRequest
-	31, // 16: auth.v1.AuthService.ListPermissions:input_type -> auth.v1.ListPermissionsRequest
-	33, // 17: auth.v1.AuthService.GrantPermission:input_type -> auth.v1.GrantPermissionRequest
-	35, // 18: auth.v1.AuthService.RevokePermission:input_type -> auth.v1.RevokePermissionRequest
-	0,  // 19: auth.v1.AuthService.RequestEmailVerification:input_type -> auth.v1.EmailRequest
-	1,  // 20: auth.v1.AuthService.VerifyEmail:input_type -> auth.v1.TokenRequest
-	0,  // 21: auth.v1.AuthService.RequestPasswordReset:input_type -> auth.v1.EmailRequest
-	4,  // 22: auth.v1.AuthService.ResetPassword:input_type -> auth.v1.ResetPasswordRequest
-	6,  // 23: auth.v1.AuthService.ListAuditEvents:input_type -> auth.v1.ListAuditEventsRequest
-	38, // 24: auth.v1.AuthService.GetJwks:input_type -> auth.v1.GetJwksRequest
-	41, // 25: auth.v1.AuthService.GetClient:input_type -> auth.v1.GetClientRequest
-	42, // 26: auth.v1.AuthService.CreateAuthorizationCode:input_type -> auth.v1.CreateAuthorizationCodeRequest
-	44, // 27: auth.v1.AuthService.GetConsent:input_type -> auth.v1.GetConsentRequest
-	46, // 28: auth.v1.AuthService.SaveConsent:input_type -> auth.v1.SaveConsentRequest
-	48, // 29: auth.v1.AuthService.ExchangeAuthorizationCode:input_type -> auth.v1.ExchangeAuthorizationCodeRequest
-	50, // 30: auth.v1.AuthService.RegisterClient:input_type -> auth.v1.RegisterClientRequest
-	9,  // 31: auth.v1.AuthService.Register:output_type -> auth.v1.RegisterResponse
-	12, // 32: auth.v1.AuthService.Login:output_type -> auth.v1.TokenPair
-	12, // 33: auth.v1.AuthService.Refresh:output_type -> auth.v1.TokenPair
-	14, // 34: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
-	18, // 35: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
-	16, // 36: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
-	19, // 37: auth.v1.AuthService.CreateRole:output_type -> auth.v1.Role
-	19, // 38: auth.v1.AuthService.UpdateRole:output_type -> auth.v1.Role
-	24, // 39: auth.v1.AuthService.DeleteRole:output_type -> auth.v1.DeleteRoleResponse
-	26, // 40: auth.v1.AuthService.ListRoles:output_type -> auth.v1.ListRolesResponse
-	28, // 41: auth.v1.AuthService.AssignRole:output_type -> auth.v1.AssignRoleResponse
-	30, // 42: auth.v1.AuthService.RevokeRole:output_type -> auth.v1.RevokeRoleResponse
-	32, // 43: auth.v1.AuthService.ListPermissions:output_type -> auth.v1.ListPermissionsResponse
-	34, // 44: auth.v1.AuthService.GrantPermission:output_type -> auth.v1.GrantPermissionResponse
-	36, // 45: auth.v1.AuthService.RevokePermission:output_type -> auth.v1.RevokePermissionResponse
-	2,  // 46: auth.v1.AuthService.RequestEmailVerification:output_type -> auth.v1.DevTokenResponse
-	3,  // 47: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.GenericResponse
-	2,  // 48: auth.v1.AuthService.RequestPasswordReset:output_type -> auth.v1.DevTokenResponse
-	3,  // 49: auth.v1.AuthService.ResetPassword:output_type -> auth.v1.GenericResponse
-	7,  // 50: auth.v1.AuthService.ListAuditEvents:output_type -> auth.v1.ListAuditEventsResponse
-	39, // 51: auth.v1.AuthService.GetJwks:output_type -> auth.v1.GetJwksResponse
-	40, // 52: auth.v1.AuthService.GetClient:output_type -> auth.v1.OAuthClient
-	43, // 53: auth.v1.AuthService.CreateAuthorizationCode:output_type -> auth.v1.CreateAuthorizationCodeResponse
-	45, // 54: auth.v1.AuthService.GetConsent:output_type -> auth.v1.GetConsentResponse
-	47, // 55: auth.v1.AuthService.SaveConsent:output_type -> auth.v1.SaveConsentResponse
-	49, // 56: auth.v1.AuthService.ExchangeAuthorizationCode:output_type -> auth.v1.OidcTokenResponse
-	51, // 57: auth.v1.AuthService.RegisterClient:output_type -> auth.v1.RegisterClientResponse
-	31, // [31:58] is the sub-list for method output_type
-	4,  // [4:31] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	57, // 4: auth.v1.CreateApiKeyResponse.key:type_name -> auth.v1.ApiKey
+	57, // 5: auth.v1.ListApiKeysResponse.keys:type_name -> auth.v1.ApiKey
+	8,  // 6: auth.v1.AuthService.Register:input_type -> auth.v1.RegisterRequest
+	10, // 7: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	11, // 8: auth.v1.AuthService.Refresh:input_type -> auth.v1.RefreshRequest
+	13, // 9: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
+	17, // 10: auth.v1.AuthService.ValidateToken:input_type -> auth.v1.ValidateTokenRequest
+	15, // 11: auth.v1.AuthService.DeleteUser:input_type -> auth.v1.DeleteUserRequest
+	21, // 12: auth.v1.AuthService.CreateRole:input_type -> auth.v1.CreateRoleRequest
+	22, // 13: auth.v1.AuthService.UpdateRole:input_type -> auth.v1.UpdateRoleRequest
+	23, // 14: auth.v1.AuthService.DeleteRole:input_type -> auth.v1.DeleteRoleRequest
+	25, // 15: auth.v1.AuthService.ListRoles:input_type -> auth.v1.ListRolesRequest
+	27, // 16: auth.v1.AuthService.AssignRole:input_type -> auth.v1.AssignRoleRequest
+	29, // 17: auth.v1.AuthService.RevokeRole:input_type -> auth.v1.RevokeRoleRequest
+	31, // 18: auth.v1.AuthService.ListPermissions:input_type -> auth.v1.ListPermissionsRequest
+	33, // 19: auth.v1.AuthService.GrantPermission:input_type -> auth.v1.GrantPermissionRequest
+	35, // 20: auth.v1.AuthService.RevokePermission:input_type -> auth.v1.RevokePermissionRequest
+	0,  // 21: auth.v1.AuthService.RequestEmailVerification:input_type -> auth.v1.EmailRequest
+	1,  // 22: auth.v1.AuthService.VerifyEmail:input_type -> auth.v1.TokenRequest
+	0,  // 23: auth.v1.AuthService.RequestPasswordReset:input_type -> auth.v1.EmailRequest
+	4,  // 24: auth.v1.AuthService.ResetPassword:input_type -> auth.v1.ResetPasswordRequest
+	6,  // 25: auth.v1.AuthService.ListAuditEvents:input_type -> auth.v1.ListAuditEventsRequest
+	38, // 26: auth.v1.AuthService.GetJwks:input_type -> auth.v1.GetJwksRequest
+	41, // 27: auth.v1.AuthService.GetClient:input_type -> auth.v1.GetClientRequest
+	42, // 28: auth.v1.AuthService.CreateAuthorizationCode:input_type -> auth.v1.CreateAuthorizationCodeRequest
+	44, // 29: auth.v1.AuthService.GetConsent:input_type -> auth.v1.GetConsentRequest
+	46, // 30: auth.v1.AuthService.SaveConsent:input_type -> auth.v1.SaveConsentRequest
+	48, // 31: auth.v1.AuthService.ExchangeAuthorizationCode:input_type -> auth.v1.ExchangeAuthorizationCodeRequest
+	50, // 32: auth.v1.AuthService.RegisterClient:input_type -> auth.v1.RegisterClientRequest
+	52, // 33: auth.v1.AuthService.EnrollTotp:input_type -> auth.v1.EnrollTotpRequest
+	54, // 34: auth.v1.AuthService.ActivateTotp:input_type -> auth.v1.ActivateTotpRequest
+	55, // 35: auth.v1.AuthService.DisableTotp:input_type -> auth.v1.DisableTotpRequest
+	56, // 36: auth.v1.AuthService.LoginTotp:input_type -> auth.v1.LoginTotpRequest
+	58, // 37: auth.v1.AuthService.CreateApiKey:input_type -> auth.v1.CreateApiKeyRequest
+	60, // 38: auth.v1.AuthService.ListApiKeys:input_type -> auth.v1.ListApiKeysRequest
+	62, // 39: auth.v1.AuthService.RevokeApiKey:input_type -> auth.v1.RevokeApiKeyRequest
+	63, // 40: auth.v1.AuthService.ValidateApiKey:input_type -> auth.v1.ValidateApiKeyRequest
+	65, // 41: auth.v1.AuthService.RestoreUser:input_type -> auth.v1.RestoreUserRequest
+	9,  // 42: auth.v1.AuthService.Register:output_type -> auth.v1.RegisterResponse
+	12, // 43: auth.v1.AuthService.Login:output_type -> auth.v1.TokenPair
+	12, // 44: auth.v1.AuthService.Refresh:output_type -> auth.v1.TokenPair
+	14, // 45: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
+	18, // 46: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
+	16, // 47: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
+	19, // 48: auth.v1.AuthService.CreateRole:output_type -> auth.v1.Role
+	19, // 49: auth.v1.AuthService.UpdateRole:output_type -> auth.v1.Role
+	24, // 50: auth.v1.AuthService.DeleteRole:output_type -> auth.v1.DeleteRoleResponse
+	26, // 51: auth.v1.AuthService.ListRoles:output_type -> auth.v1.ListRolesResponse
+	28, // 52: auth.v1.AuthService.AssignRole:output_type -> auth.v1.AssignRoleResponse
+	30, // 53: auth.v1.AuthService.RevokeRole:output_type -> auth.v1.RevokeRoleResponse
+	32, // 54: auth.v1.AuthService.ListPermissions:output_type -> auth.v1.ListPermissionsResponse
+	34, // 55: auth.v1.AuthService.GrantPermission:output_type -> auth.v1.GrantPermissionResponse
+	36, // 56: auth.v1.AuthService.RevokePermission:output_type -> auth.v1.RevokePermissionResponse
+	2,  // 57: auth.v1.AuthService.RequestEmailVerification:output_type -> auth.v1.DevTokenResponse
+	3,  // 58: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.GenericResponse
+	2,  // 59: auth.v1.AuthService.RequestPasswordReset:output_type -> auth.v1.DevTokenResponse
+	3,  // 60: auth.v1.AuthService.ResetPassword:output_type -> auth.v1.GenericResponse
+	7,  // 61: auth.v1.AuthService.ListAuditEvents:output_type -> auth.v1.ListAuditEventsResponse
+	39, // 62: auth.v1.AuthService.GetJwks:output_type -> auth.v1.GetJwksResponse
+	40, // 63: auth.v1.AuthService.GetClient:output_type -> auth.v1.OAuthClient
+	43, // 64: auth.v1.AuthService.CreateAuthorizationCode:output_type -> auth.v1.CreateAuthorizationCodeResponse
+	45, // 65: auth.v1.AuthService.GetConsent:output_type -> auth.v1.GetConsentResponse
+	47, // 66: auth.v1.AuthService.SaveConsent:output_type -> auth.v1.SaveConsentResponse
+	49, // 67: auth.v1.AuthService.ExchangeAuthorizationCode:output_type -> auth.v1.OidcTokenResponse
+	51, // 68: auth.v1.AuthService.RegisterClient:output_type -> auth.v1.RegisterClientResponse
+	53, // 69: auth.v1.AuthService.EnrollTotp:output_type -> auth.v1.EnrollTotpResponse
+	3,  // 70: auth.v1.AuthService.ActivateTotp:output_type -> auth.v1.GenericResponse
+	3,  // 71: auth.v1.AuthService.DisableTotp:output_type -> auth.v1.GenericResponse
+	12, // 72: auth.v1.AuthService.LoginTotp:output_type -> auth.v1.TokenPair
+	59, // 73: auth.v1.AuthService.CreateApiKey:output_type -> auth.v1.CreateApiKeyResponse
+	61, // 74: auth.v1.AuthService.ListApiKeys:output_type -> auth.v1.ListApiKeysResponse
+	3,  // 75: auth.v1.AuthService.RevokeApiKey:output_type -> auth.v1.GenericResponse
+	64, // 76: auth.v1.AuthService.ValidateApiKey:output_type -> auth.v1.ValidateApiKeyResponse
+	3,  // 77: auth.v1.AuthService.RestoreUser:output_type -> auth.v1.GenericResponse
+	42, // [42:78] is the sub-list for method output_type
+	6,  // [6:42] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_auth_proto_init() }
@@ -3133,7 +3956,7 @@ func file_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   52,
+			NumMessages:   66,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

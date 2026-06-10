@@ -46,6 +46,15 @@ const (
 	AuthService_SaveConsent_FullMethodName               = "/auth.v1.AuthService/SaveConsent"
 	AuthService_ExchangeAuthorizationCode_FullMethodName = "/auth.v1.AuthService/ExchangeAuthorizationCode"
 	AuthService_RegisterClient_FullMethodName            = "/auth.v1.AuthService/RegisterClient"
+	AuthService_EnrollTotp_FullMethodName                = "/auth.v1.AuthService/EnrollTotp"
+	AuthService_ActivateTotp_FullMethodName              = "/auth.v1.AuthService/ActivateTotp"
+	AuthService_DisableTotp_FullMethodName               = "/auth.v1.AuthService/DisableTotp"
+	AuthService_LoginTotp_FullMethodName                 = "/auth.v1.AuthService/LoginTotp"
+	AuthService_CreateApiKey_FullMethodName              = "/auth.v1.AuthService/CreateApiKey"
+	AuthService_ListApiKeys_FullMethodName               = "/auth.v1.AuthService/ListApiKeys"
+	AuthService_RevokeApiKey_FullMethodName              = "/auth.v1.AuthService/RevokeApiKey"
+	AuthService_ValidateApiKey_FullMethodName            = "/auth.v1.AuthService/ValidateApiKey"
+	AuthService_RestoreUser_FullMethodName               = "/auth.v1.AuthService/RestoreUser"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -89,6 +98,20 @@ type AuthServiceClient interface {
 	SaveConsent(ctx context.Context, in *SaveConsentRequest, opts ...grpc.CallOption) (*SaveConsentResponse, error)
 	ExchangeAuthorizationCode(ctx context.Context, in *ExchangeAuthorizationCodeRequest, opts ...grpc.CallOption) (*OidcTokenResponse, error)
 	RegisterClient(ctx context.Context, in *RegisterClientRequest, opts ...grpc.CallOption) (*RegisterClientResponse, error)
+	// 2FA / TOTP (v0.9)
+	EnrollTotp(ctx context.Context, in *EnrollTotpRequest, opts ...grpc.CallOption) (*EnrollTotpResponse, error)
+	ActivateTotp(ctx context.Context, in *ActivateTotpRequest, opts ...grpc.CallOption) (*GenericResponse, error)
+	DisableTotp(ctx context.Context, in *DisableTotpRequest, opts ...grpc.CallOption) (*GenericResponse, error)
+	// LoginTotp completes a login that returned mfa_required, using a TOTP or recovery code.
+	LoginTotp(ctx context.Context, in *LoginTotpRequest, opts ...grpc.CallOption) (*TokenPair, error)
+	// API keys (v0.9): scoped, programmatic credentials (iamk_...).
+	CreateApiKey(ctx context.Context, in *CreateApiKeyRequest, opts ...grpc.CallOption) (*CreateApiKeyResponse, error)
+	ListApiKeys(ctx context.Context, in *ListApiKeysRequest, opts ...grpc.CallOption) (*ListApiKeysResponse, error)
+	RevokeApiKey(ctx context.Context, in *RevokeApiKeyRequest, opts ...grpc.CallOption) (*GenericResponse, error)
+	// ValidateApiKey is called by the gateway when a request presents an iamk_ bearer token.
+	ValidateApiKey(ctx context.Context, in *ValidateApiKeyRequest, opts ...grpc.CallOption) (*ValidateApiKeyResponse, error)
+	// Soft-delete (v0.9): RestoreUser reverses a soft DeleteUser.
+	RestoreUser(ctx context.Context, in *RestoreUserRequest, opts ...grpc.CallOption) (*GenericResponse, error)
 }
 
 type authServiceClient struct {
@@ -369,6 +392,96 @@ func (c *authServiceClient) RegisterClient(ctx context.Context, in *RegisterClie
 	return out, nil
 }
 
+func (c *authServiceClient) EnrollTotp(ctx context.Context, in *EnrollTotpRequest, opts ...grpc.CallOption) (*EnrollTotpResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EnrollTotpResponse)
+	err := c.cc.Invoke(ctx, AuthService_EnrollTotp_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ActivateTotp(ctx context.Context, in *ActivateTotpRequest, opts ...grpc.CallOption) (*GenericResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenericResponse)
+	err := c.cc.Invoke(ctx, AuthService_ActivateTotp_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) DisableTotp(ctx context.Context, in *DisableTotpRequest, opts ...grpc.CallOption) (*GenericResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenericResponse)
+	err := c.cc.Invoke(ctx, AuthService_DisableTotp_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) LoginTotp(ctx context.Context, in *LoginTotpRequest, opts ...grpc.CallOption) (*TokenPair, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TokenPair)
+	err := c.cc.Invoke(ctx, AuthService_LoginTotp_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) CreateApiKey(ctx context.Context, in *CreateApiKeyRequest, opts ...grpc.CallOption) (*CreateApiKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateApiKeyResponse)
+	err := c.cc.Invoke(ctx, AuthService_CreateApiKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ListApiKeys(ctx context.Context, in *ListApiKeysRequest, opts ...grpc.CallOption) (*ListApiKeysResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListApiKeysResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListApiKeys_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) RevokeApiKey(ctx context.Context, in *RevokeApiKeyRequest, opts ...grpc.CallOption) (*GenericResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenericResponse)
+	err := c.cc.Invoke(ctx, AuthService_RevokeApiKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ValidateApiKey(ctx context.Context, in *ValidateApiKeyRequest, opts ...grpc.CallOption) (*ValidateApiKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateApiKeyResponse)
+	err := c.cc.Invoke(ctx, AuthService_ValidateApiKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) RestoreUser(ctx context.Context, in *RestoreUserRequest, opts ...grpc.CallOption) (*GenericResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenericResponse)
+	err := c.cc.Invoke(ctx, AuthService_RestoreUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -410,6 +523,20 @@ type AuthServiceServer interface {
 	SaveConsent(context.Context, *SaveConsentRequest) (*SaveConsentResponse, error)
 	ExchangeAuthorizationCode(context.Context, *ExchangeAuthorizationCodeRequest) (*OidcTokenResponse, error)
 	RegisterClient(context.Context, *RegisterClientRequest) (*RegisterClientResponse, error)
+	// 2FA / TOTP (v0.9)
+	EnrollTotp(context.Context, *EnrollTotpRequest) (*EnrollTotpResponse, error)
+	ActivateTotp(context.Context, *ActivateTotpRequest) (*GenericResponse, error)
+	DisableTotp(context.Context, *DisableTotpRequest) (*GenericResponse, error)
+	// LoginTotp completes a login that returned mfa_required, using a TOTP or recovery code.
+	LoginTotp(context.Context, *LoginTotpRequest) (*TokenPair, error)
+	// API keys (v0.9): scoped, programmatic credentials (iamk_...).
+	CreateApiKey(context.Context, *CreateApiKeyRequest) (*CreateApiKeyResponse, error)
+	ListApiKeys(context.Context, *ListApiKeysRequest) (*ListApiKeysResponse, error)
+	RevokeApiKey(context.Context, *RevokeApiKeyRequest) (*GenericResponse, error)
+	// ValidateApiKey is called by the gateway when a request presents an iamk_ bearer token.
+	ValidateApiKey(context.Context, *ValidateApiKeyRequest) (*ValidateApiKeyResponse, error)
+	// Soft-delete (v0.9): RestoreUser reverses a soft DeleteUser.
+	RestoreUser(context.Context, *RestoreUserRequest) (*GenericResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -500,6 +627,33 @@ func (UnimplementedAuthServiceServer) ExchangeAuthorizationCode(context.Context,
 }
 func (UnimplementedAuthServiceServer) RegisterClient(context.Context, *RegisterClientRequest) (*RegisterClientResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterClient not implemented")
+}
+func (UnimplementedAuthServiceServer) EnrollTotp(context.Context, *EnrollTotpRequest) (*EnrollTotpResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method EnrollTotp not implemented")
+}
+func (UnimplementedAuthServiceServer) ActivateTotp(context.Context, *ActivateTotpRequest) (*GenericResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ActivateTotp not implemented")
+}
+func (UnimplementedAuthServiceServer) DisableTotp(context.Context, *DisableTotpRequest) (*GenericResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DisableTotp not implemented")
+}
+func (UnimplementedAuthServiceServer) LoginTotp(context.Context, *LoginTotpRequest) (*TokenPair, error) {
+	return nil, status.Error(codes.Unimplemented, "method LoginTotp not implemented")
+}
+func (UnimplementedAuthServiceServer) CreateApiKey(context.Context, *CreateApiKeyRequest) (*CreateApiKeyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateApiKey not implemented")
+}
+func (UnimplementedAuthServiceServer) ListApiKeys(context.Context, *ListApiKeysRequest) (*ListApiKeysResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListApiKeys not implemented")
+}
+func (UnimplementedAuthServiceServer) RevokeApiKey(context.Context, *RevokeApiKeyRequest) (*GenericResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RevokeApiKey not implemented")
+}
+func (UnimplementedAuthServiceServer) ValidateApiKey(context.Context, *ValidateApiKeyRequest) (*ValidateApiKeyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ValidateApiKey not implemented")
+}
+func (UnimplementedAuthServiceServer) RestoreUser(context.Context, *RestoreUserRequest) (*GenericResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RestoreUser not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -1008,6 +1162,168 @@ func _AuthService_RegisterClient_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_EnrollTotp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnrollTotpRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).EnrollTotp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_EnrollTotp_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).EnrollTotp(ctx, req.(*EnrollTotpRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ActivateTotp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActivateTotpRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ActivateTotp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ActivateTotp_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ActivateTotp(ctx, req.(*ActivateTotpRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_DisableTotp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableTotpRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DisableTotp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DisableTotp_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DisableTotp(ctx, req.(*DisableTotpRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_LoginTotp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginTotpRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).LoginTotp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_LoginTotp_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).LoginTotp(ctx, req.(*LoginTotpRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_CreateApiKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateApiKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).CreateApiKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_CreateApiKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).CreateApiKey(ctx, req.(*CreateApiKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ListApiKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListApiKeysRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListApiKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListApiKeys_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListApiKeys(ctx, req.(*ListApiKeysRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_RevokeApiKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeApiKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RevokeApiKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_RevokeApiKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RevokeApiKey(ctx, req.(*RevokeApiKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ValidateApiKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateApiKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ValidateApiKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ValidateApiKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ValidateApiKey(ctx, req.(*ValidateApiKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_RestoreUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RestoreUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_RestoreUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RestoreUser(ctx, req.(*RestoreUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1122,6 +1438,42 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterClient",
 			Handler:    _AuthService_RegisterClient_Handler,
+		},
+		{
+			MethodName: "EnrollTotp",
+			Handler:    _AuthService_EnrollTotp_Handler,
+		},
+		{
+			MethodName: "ActivateTotp",
+			Handler:    _AuthService_ActivateTotp_Handler,
+		},
+		{
+			MethodName: "DisableTotp",
+			Handler:    _AuthService_DisableTotp_Handler,
+		},
+		{
+			MethodName: "LoginTotp",
+			Handler:    _AuthService_LoginTotp_Handler,
+		},
+		{
+			MethodName: "CreateApiKey",
+			Handler:    _AuthService_CreateApiKey_Handler,
+		},
+		{
+			MethodName: "ListApiKeys",
+			Handler:    _AuthService_ListApiKeys_Handler,
+		},
+		{
+			MethodName: "RevokeApiKey",
+			Handler:    _AuthService_RevokeApiKey_Handler,
+		},
+		{
+			MethodName: "ValidateApiKey",
+			Handler:    _AuthService_ValidateApiKey_Handler,
+		},
+		{
+			MethodName: "RestoreUser",
+			Handler:    _AuthService_RestoreUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

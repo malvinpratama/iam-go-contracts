@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_CreateProfile_FullMethodName = "/user.v1.UserService/CreateProfile"
-	UserService_GetProfile_FullMethodName    = "/user.v1.UserService/GetProfile"
-	UserService_UpdateProfile_FullMethodName = "/user.v1.UserService/UpdateProfile"
-	UserService_DeleteProfile_FullMethodName = "/user.v1.UserService/DeleteProfile"
-	UserService_ListProfiles_FullMethodName  = "/user.v1.UserService/ListProfiles"
+	UserService_CreateProfile_FullMethodName  = "/user.v1.UserService/CreateProfile"
+	UserService_GetProfile_FullMethodName     = "/user.v1.UserService/GetProfile"
+	UserService_UpdateProfile_FullMethodName  = "/user.v1.UserService/UpdateProfile"
+	UserService_DeleteProfile_FullMethodName  = "/user.v1.UserService/DeleteProfile"
+	UserService_RestoreProfile_FullMethodName = "/user.v1.UserService/RestoreProfile"
+	UserService_ListProfiles_FullMethodName   = "/user.v1.UserService/ListProfiles"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -36,6 +37,8 @@ type UserServiceClient interface {
 	GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*Profile, error)
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*Profile, error)
 	DeleteProfile(ctx context.Context, in *DeleteProfileRequest, opts ...grpc.CallOption) (*DeleteProfileResponse, error)
+	// RestoreProfile reverses a soft-delete (v0.9).
+	RestoreProfile(ctx context.Context, in *RestoreProfileRequest, opts ...grpc.CallOption) (*DeleteProfileResponse, error)
 	ListProfiles(ctx context.Context, in *ListProfilesRequest, opts ...grpc.CallOption) (*ListProfilesResponse, error)
 }
 
@@ -87,6 +90,16 @@ func (c *userServiceClient) DeleteProfile(ctx context.Context, in *DeleteProfile
 	return out, nil
 }
 
+func (c *userServiceClient) RestoreProfile(ctx context.Context, in *RestoreProfileRequest, opts ...grpc.CallOption) (*DeleteProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteProfileResponse)
+	err := c.cc.Invoke(ctx, UserService_RestoreProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) ListProfiles(ctx context.Context, in *ListProfilesRequest, opts ...grpc.CallOption) (*ListProfilesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListProfilesResponse)
@@ -107,6 +120,8 @@ type UserServiceServer interface {
 	GetProfile(context.Context, *GetProfileRequest) (*Profile, error)
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*Profile, error)
 	DeleteProfile(context.Context, *DeleteProfileRequest) (*DeleteProfileResponse, error)
+	// RestoreProfile reverses a soft-delete (v0.9).
+	RestoreProfile(context.Context, *RestoreProfileRequest) (*DeleteProfileResponse, error)
 	ListProfiles(context.Context, *ListProfilesRequest) (*ListProfilesResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
@@ -129,6 +144,9 @@ func (UnimplementedUserServiceServer) UpdateProfile(context.Context, *UpdateProf
 }
 func (UnimplementedUserServiceServer) DeleteProfile(context.Context, *DeleteProfileRequest) (*DeleteProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteProfile not implemented")
+}
+func (UnimplementedUserServiceServer) RestoreProfile(context.Context, *RestoreProfileRequest) (*DeleteProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RestoreProfile not implemented")
 }
 func (UnimplementedUserServiceServer) ListProfiles(context.Context, *ListProfilesRequest) (*ListProfilesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListProfiles not implemented")
@@ -226,6 +244,24 @@ func _UserService_DeleteProfile_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_RestoreProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).RestoreProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_RestoreProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).RestoreProfile(ctx, req.(*RestoreProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_ListProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListProfilesRequest)
 	if err := dec(in); err != nil {
@@ -266,6 +302,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteProfile",
 			Handler:    _UserService_DeleteProfile_Handler,
+		},
+		{
+			MethodName: "RestoreProfile",
+			Handler:    _UserService_RestoreProfile_Handler,
 		},
 		{
 			MethodName: "ListProfiles",

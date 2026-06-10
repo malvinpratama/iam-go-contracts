@@ -45,6 +45,23 @@ service AuthService {
   rpc SaveConsent(SaveConsentRequest) returns (SaveConsentResponse);
   rpc ExchangeAuthorizationCode(ExchangeAuthorizationCodeRequest) returns (OidcTokenResponse);
   rpc RegisterClient(RegisterClientRequest) returns (RegisterClientResponse);
+
+  // 2FA / TOTP (v0.9)
+  rpc EnrollTotp(EnrollTotpRequest) returns (EnrollTotpResponse);
+  rpc ActivateTotp(ActivateTotpRequest) returns (GenericResponse);
+  rpc DisableTotp(DisableTotpRequest) returns (GenericResponse);
+  // LoginTotp completes a login that returned mfa_required, using a TOTP or recovery code.
+  rpc LoginTotp(LoginTotpRequest) returns (TokenPair);
+
+  // API keys (v0.9): scoped, programmatic credentials (iamk_...).
+  rpc CreateApiKey(CreateApiKeyRequest) returns (CreateApiKeyResponse);
+  rpc ListApiKeys(ListApiKeysRequest) returns (ListApiKeysResponse);
+  rpc RevokeApiKey(RevokeApiKeyRequest) returns (GenericResponse);
+  // ValidateApiKey is called by the gateway when a request presents an iamk_ bearer token.
+  rpc ValidateApiKey(ValidateApiKeyRequest) returns (ValidateApiKeyResponse);
+
+  // Soft-delete (v0.9): RestoreUser reverses a soft DeleteUser.
+  rpc RestoreUser(RestoreUserRequest) returns (GenericResponse);
 }
 
 // ── Account recovery & audit (v0.2) ─────────────────────────
@@ -117,6 +134,10 @@ message TokenPair {
   string refresh_token = 2;
   int64 expires_in = 3; // access token TTL in seconds
   string token_type = 4; // "Bearer"
+  // 2FA (v0.9): when mfa_required is true, access/refresh are empty and the
+  // client must call LoginTotp with mfa_token + a TOTP/recovery code.
+  bool mfa_required = 5;
+  string mfa_token = 6; // short-lived, signed; proves the password step passed
 }
 
 message LogoutRequest {
@@ -130,6 +151,7 @@ message LogoutResponse {
 
 message DeleteUserRequest {
   string user_id = 1;
+  bool hard = 2; // v0.9: true = permanent delete; false (default) = soft-delete
 }
 
 message DeleteUserResponse {
@@ -320,4 +342,77 @@ message RegisterClientRequest {
 message RegisterClientResponse {
   string client_id = 1;
   string client_secret = 2; // returned once (plaintext) for confidential clients
+}
+
+// ── 2FA / TOTP (v0.9) ───────────────────────────────────────
+
+// EnrollTotp starts enrollment for the caller (identity from gRPC metadata):
+// generates a secret + recovery codes. Not active until ActivateTotp succeeds.
+message EnrollTotpRequest {}
+
+message EnrollTotpResponse {
+  string secret = 1;       // base32 TOTP secret (for manual entry)
+  string otpauth_uri = 2;  // otpauth://totp/... (render as QR)
+  repeated string recovery_codes = 3; // one-time codes, shown once
+}
+
+message ActivateTotpRequest {
+  string code = 1; // a current TOTP code, proving the authenticator is set up
+}
+
+message DisableTotpRequest {
+  string code = 1; // a current TOTP or recovery code
+}
+
+message LoginTotpRequest {
+  string mfa_token = 1; // from the mfa_required login response
+  string code = 2;      // TOTP or recovery code
+}
+
+// ── API keys (v0.9) ─────────────────────────────────────────
+
+message ApiKey {
+  string id = 1;                 // key id / prefix (no secret)
+  string name = 2;
+  repeated string scopes = 3;    // permission subset granted to the key
+  string created_at = 4;
+  string expires_at = 5;         // empty = no expiry
+  string last_used_at = 6;       // empty = never used
+}
+
+message CreateApiKeyRequest {
+  string name = 1;
+  repeated string scopes = 2;    // must be a subset of the caller's permissions
+  int64 ttl_seconds = 3;         // 0 = no expiry
+}
+
+message CreateApiKeyResponse {
+  string secret = 1; // full key (iamk_...), shown exactly once
+  ApiKey key = 2;
+}
+
+message ListApiKeysRequest {}
+
+message ListApiKeysResponse {
+  repeated ApiKey keys = 1;
+}
+
+message RevokeApiKeyRequest {
+  string id = 1;
+}
+
+message ValidateApiKeyRequest {
+  string api_key = 1;
+}
+
+message ValidateApiKeyResponse {
+  string user_id = 1;
+  string email = 2;
+  repeated string scopes = 3; // effective: requested scopes ∩ user's current permissions
+}
+
+// ── Soft-delete (v0.9) ──────────────────────────────────────
+
+message RestoreUserRequest {
+  string user_id = 1;
 }
