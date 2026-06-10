@@ -1867,6 +1867,171 @@ func (x *RevokePermissionResponse) GetSuccess() bool {
 	return false
 }
 
+// Jwk is one public key in JWK form (RFC 7517) for an RSA signing key.
+type Jwk struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kid           string                 `protobuf:"bytes,1,opt,name=kid,proto3" json:"kid,omitempty"` // key id (matches the JWT header `kid`)
+	Kty           string                 `protobuf:"bytes,2,opt,name=kty,proto3" json:"kty,omitempty"` // key type, e.g. "RSA"
+	Use           string                 `protobuf:"bytes,3,opt,name=use,proto3" json:"use,omitempty"` // public key use, e.g. "sig"
+	Alg           string                 `protobuf:"bytes,4,opt,name=alg,proto3" json:"alg,omitempty"` // algorithm, e.g. "RS256"
+	N             string                 `protobuf:"bytes,5,opt,name=n,proto3" json:"n,omitempty"`     // RSA modulus, base64url
+	E             string                 `protobuf:"bytes,6,opt,name=e,proto3" json:"e,omitempty"`     // RSA exponent, base64url
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Jwk) Reset() {
+	*x = Jwk{}
+	mi := &file_auth_v1_auth_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Jwk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Jwk) ProtoMessage() {}
+
+func (x *Jwk) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Jwk.ProtoReflect.Descriptor instead.
+func (*Jwk) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *Jwk) GetKid() string {
+	if x != nil {
+		return x.Kid
+	}
+	return ""
+}
+
+func (x *Jwk) GetKty() string {
+	if x != nil {
+		return x.Kty
+	}
+	return ""
+}
+
+func (x *Jwk) GetUse() string {
+	if x != nil {
+		return x.Use
+	}
+	return ""
+}
+
+func (x *Jwk) GetAlg() string {
+	if x != nil {
+		return x.Alg
+	}
+	return ""
+}
+
+func (x *Jwk) GetN() string {
+	if x != nil {
+		return x.N
+	}
+	return ""
+}
+
+func (x *Jwk) GetE() string {
+	if x != nil {
+		return x.E
+	}
+	return ""
+}
+
+type GetJwksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetJwksRequest) Reset() {
+	*x = GetJwksRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetJwksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetJwksRequest) ProtoMessage() {}
+
+func (x *GetJwksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetJwksRequest.ProtoReflect.Descriptor instead.
+func (*GetJwksRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{38}
+}
+
+type GetJwksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keys          []*Jwk                 `protobuf:"bytes,1,rep,name=keys,proto3" json:"keys,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetJwksResponse) Reset() {
+	*x = GetJwksResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetJwksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetJwksResponse) ProtoMessage() {}
+
+func (x *GetJwksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetJwksResponse.ProtoReflect.Descriptor instead.
+func (*GetJwksResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *GetJwksResponse) GetKeys() []*Jwk {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
+}
+
 var File_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_proto_rawDesc = "" +
@@ -1978,7 +2143,17 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\trole_name\x18\x01 \x01(\tR\broleName\x12'\n" +
 	"\x0fpermission_name\x18\x02 \x01(\tR\x0epermissionName\"4\n" +
 	"\x18RevokePermissionResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\x94\v\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"i\n" +
+	"\x03Jwk\x12\x10\n" +
+	"\x03kid\x18\x01 \x01(\tR\x03kid\x12\x10\n" +
+	"\x03kty\x18\x02 \x01(\tR\x03kty\x12\x10\n" +
+	"\x03use\x18\x03 \x01(\tR\x03use\x12\x10\n" +
+	"\x03alg\x18\x04 \x01(\tR\x03alg\x12\f\n" +
+	"\x01n\x18\x05 \x01(\tR\x01n\x12\f\n" +
+	"\x01e\x18\x06 \x01(\tR\x01e\"\x10\n" +
+	"\x0eGetJwksRequest\"3\n" +
+	"\x0fGetJwksResponse\x12 \n" +
+	"\x04keys\x18\x01 \x03(\v2\f.auth.v1.JwkR\x04keys2\xd2\v\n" +
 	"\vAuthService\x12?\n" +
 	"\bRegister\x12\x18.auth.v1.RegisterRequest\x1a\x19.auth.v1.RegisterResponse\x122\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x12.auth.v1.TokenPair\x126\n" +
@@ -2005,7 +2180,8 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\vVerifyEmail\x12\x15.auth.v1.TokenRequest\x1a\x18.auth.v1.GenericResponse\x12H\n" +
 	"\x14RequestPasswordReset\x12\x15.auth.v1.EmailRequest\x1a\x19.auth.v1.DevTokenResponse\x12H\n" +
 	"\rResetPassword\x12\x1d.auth.v1.ResetPasswordRequest\x1a\x18.auth.v1.GenericResponse\x12T\n" +
-	"\x0fListAuditEvents\x12\x1f.auth.v1.ListAuditEventsRequest\x1a .auth.v1.ListAuditEventsResponseB-Z+github.com/malvin/iam-go/gen/auth/v1;authv1b\x06proto3"
+	"\x0fListAuditEvents\x12\x1f.auth.v1.ListAuditEventsRequest\x1a .auth.v1.ListAuditEventsResponse\x12<\n" +
+	"\aGetJwks\x12\x17.auth.v1.GetJwksRequest\x1a\x18.auth.v1.GetJwksResponseB>Z<github.com/malvinpratama/iam-go-contracts/gen/auth/v1;authv1b\x06proto3"
 
 var (
 	file_auth_v1_auth_proto_rawDescOnce sync.Once
@@ -2019,7 +2195,7 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 	return file_auth_v1_auth_proto_rawDescData
 }
 
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_auth_v1_auth_proto_goTypes = []any{
 	(*EmailRequest)(nil),             // 0: auth.v1.EmailRequest
 	(*TokenRequest)(nil),             // 1: auth.v1.TokenRequest
@@ -2058,56 +2234,62 @@ var file_auth_v1_auth_proto_goTypes = []any{
 	(*GrantPermissionResponse)(nil),  // 34: auth.v1.GrantPermissionResponse
 	(*RevokePermissionRequest)(nil),  // 35: auth.v1.RevokePermissionRequest
 	(*RevokePermissionResponse)(nil), // 36: auth.v1.RevokePermissionResponse
+	(*Jwk)(nil),                      // 37: auth.v1.Jwk
+	(*GetJwksRequest)(nil),           // 38: auth.v1.GetJwksRequest
+	(*GetJwksResponse)(nil),          // 39: auth.v1.GetJwksResponse
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
 	5,  // 0: auth.v1.ListAuditEventsResponse.events:type_name -> auth.v1.AuditEvent
 	19, // 1: auth.v1.ListRolesResponse.roles:type_name -> auth.v1.Role
 	20, // 2: auth.v1.ListPermissionsResponse.permissions:type_name -> auth.v1.Permission
-	8,  // 3: auth.v1.AuthService.Register:input_type -> auth.v1.RegisterRequest
-	10, // 4: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	11, // 5: auth.v1.AuthService.Refresh:input_type -> auth.v1.RefreshRequest
-	13, // 6: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
-	17, // 7: auth.v1.AuthService.ValidateToken:input_type -> auth.v1.ValidateTokenRequest
-	15, // 8: auth.v1.AuthService.DeleteUser:input_type -> auth.v1.DeleteUserRequest
-	21, // 9: auth.v1.AuthService.CreateRole:input_type -> auth.v1.CreateRoleRequest
-	22, // 10: auth.v1.AuthService.UpdateRole:input_type -> auth.v1.UpdateRoleRequest
-	23, // 11: auth.v1.AuthService.DeleteRole:input_type -> auth.v1.DeleteRoleRequest
-	25, // 12: auth.v1.AuthService.ListRoles:input_type -> auth.v1.ListRolesRequest
-	27, // 13: auth.v1.AuthService.AssignRole:input_type -> auth.v1.AssignRoleRequest
-	29, // 14: auth.v1.AuthService.RevokeRole:input_type -> auth.v1.RevokeRoleRequest
-	31, // 15: auth.v1.AuthService.ListPermissions:input_type -> auth.v1.ListPermissionsRequest
-	33, // 16: auth.v1.AuthService.GrantPermission:input_type -> auth.v1.GrantPermissionRequest
-	35, // 17: auth.v1.AuthService.RevokePermission:input_type -> auth.v1.RevokePermissionRequest
-	0,  // 18: auth.v1.AuthService.RequestEmailVerification:input_type -> auth.v1.EmailRequest
-	1,  // 19: auth.v1.AuthService.VerifyEmail:input_type -> auth.v1.TokenRequest
-	0,  // 20: auth.v1.AuthService.RequestPasswordReset:input_type -> auth.v1.EmailRequest
-	4,  // 21: auth.v1.AuthService.ResetPassword:input_type -> auth.v1.ResetPasswordRequest
-	6,  // 22: auth.v1.AuthService.ListAuditEvents:input_type -> auth.v1.ListAuditEventsRequest
-	9,  // 23: auth.v1.AuthService.Register:output_type -> auth.v1.RegisterResponse
-	12, // 24: auth.v1.AuthService.Login:output_type -> auth.v1.TokenPair
-	12, // 25: auth.v1.AuthService.Refresh:output_type -> auth.v1.TokenPair
-	14, // 26: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
-	18, // 27: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
-	16, // 28: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
-	19, // 29: auth.v1.AuthService.CreateRole:output_type -> auth.v1.Role
-	19, // 30: auth.v1.AuthService.UpdateRole:output_type -> auth.v1.Role
-	24, // 31: auth.v1.AuthService.DeleteRole:output_type -> auth.v1.DeleteRoleResponse
-	26, // 32: auth.v1.AuthService.ListRoles:output_type -> auth.v1.ListRolesResponse
-	28, // 33: auth.v1.AuthService.AssignRole:output_type -> auth.v1.AssignRoleResponse
-	30, // 34: auth.v1.AuthService.RevokeRole:output_type -> auth.v1.RevokeRoleResponse
-	32, // 35: auth.v1.AuthService.ListPermissions:output_type -> auth.v1.ListPermissionsResponse
-	34, // 36: auth.v1.AuthService.GrantPermission:output_type -> auth.v1.GrantPermissionResponse
-	36, // 37: auth.v1.AuthService.RevokePermission:output_type -> auth.v1.RevokePermissionResponse
-	2,  // 38: auth.v1.AuthService.RequestEmailVerification:output_type -> auth.v1.DevTokenResponse
-	3,  // 39: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.GenericResponse
-	2,  // 40: auth.v1.AuthService.RequestPasswordReset:output_type -> auth.v1.DevTokenResponse
-	3,  // 41: auth.v1.AuthService.ResetPassword:output_type -> auth.v1.GenericResponse
-	7,  // 42: auth.v1.AuthService.ListAuditEvents:output_type -> auth.v1.ListAuditEventsResponse
-	23, // [23:43] is the sub-list for method output_type
-	3,  // [3:23] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	37, // 3: auth.v1.GetJwksResponse.keys:type_name -> auth.v1.Jwk
+	8,  // 4: auth.v1.AuthService.Register:input_type -> auth.v1.RegisterRequest
+	10, // 5: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	11, // 6: auth.v1.AuthService.Refresh:input_type -> auth.v1.RefreshRequest
+	13, // 7: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
+	17, // 8: auth.v1.AuthService.ValidateToken:input_type -> auth.v1.ValidateTokenRequest
+	15, // 9: auth.v1.AuthService.DeleteUser:input_type -> auth.v1.DeleteUserRequest
+	21, // 10: auth.v1.AuthService.CreateRole:input_type -> auth.v1.CreateRoleRequest
+	22, // 11: auth.v1.AuthService.UpdateRole:input_type -> auth.v1.UpdateRoleRequest
+	23, // 12: auth.v1.AuthService.DeleteRole:input_type -> auth.v1.DeleteRoleRequest
+	25, // 13: auth.v1.AuthService.ListRoles:input_type -> auth.v1.ListRolesRequest
+	27, // 14: auth.v1.AuthService.AssignRole:input_type -> auth.v1.AssignRoleRequest
+	29, // 15: auth.v1.AuthService.RevokeRole:input_type -> auth.v1.RevokeRoleRequest
+	31, // 16: auth.v1.AuthService.ListPermissions:input_type -> auth.v1.ListPermissionsRequest
+	33, // 17: auth.v1.AuthService.GrantPermission:input_type -> auth.v1.GrantPermissionRequest
+	35, // 18: auth.v1.AuthService.RevokePermission:input_type -> auth.v1.RevokePermissionRequest
+	0,  // 19: auth.v1.AuthService.RequestEmailVerification:input_type -> auth.v1.EmailRequest
+	1,  // 20: auth.v1.AuthService.VerifyEmail:input_type -> auth.v1.TokenRequest
+	0,  // 21: auth.v1.AuthService.RequestPasswordReset:input_type -> auth.v1.EmailRequest
+	4,  // 22: auth.v1.AuthService.ResetPassword:input_type -> auth.v1.ResetPasswordRequest
+	6,  // 23: auth.v1.AuthService.ListAuditEvents:input_type -> auth.v1.ListAuditEventsRequest
+	38, // 24: auth.v1.AuthService.GetJwks:input_type -> auth.v1.GetJwksRequest
+	9,  // 25: auth.v1.AuthService.Register:output_type -> auth.v1.RegisterResponse
+	12, // 26: auth.v1.AuthService.Login:output_type -> auth.v1.TokenPair
+	12, // 27: auth.v1.AuthService.Refresh:output_type -> auth.v1.TokenPair
+	14, // 28: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
+	18, // 29: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
+	16, // 30: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
+	19, // 31: auth.v1.AuthService.CreateRole:output_type -> auth.v1.Role
+	19, // 32: auth.v1.AuthService.UpdateRole:output_type -> auth.v1.Role
+	24, // 33: auth.v1.AuthService.DeleteRole:output_type -> auth.v1.DeleteRoleResponse
+	26, // 34: auth.v1.AuthService.ListRoles:output_type -> auth.v1.ListRolesResponse
+	28, // 35: auth.v1.AuthService.AssignRole:output_type -> auth.v1.AssignRoleResponse
+	30, // 36: auth.v1.AuthService.RevokeRole:output_type -> auth.v1.RevokeRoleResponse
+	32, // 37: auth.v1.AuthService.ListPermissions:output_type -> auth.v1.ListPermissionsResponse
+	34, // 38: auth.v1.AuthService.GrantPermission:output_type -> auth.v1.GrantPermissionResponse
+	36, // 39: auth.v1.AuthService.RevokePermission:output_type -> auth.v1.RevokePermissionResponse
+	2,  // 40: auth.v1.AuthService.RequestEmailVerification:output_type -> auth.v1.DevTokenResponse
+	3,  // 41: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.GenericResponse
+	2,  // 42: auth.v1.AuthService.RequestPasswordReset:output_type -> auth.v1.DevTokenResponse
+	3,  // 43: auth.v1.AuthService.ResetPassword:output_type -> auth.v1.GenericResponse
+	7,  // 44: auth.v1.AuthService.ListAuditEvents:output_type -> auth.v1.ListAuditEventsResponse
+	39, // 45: auth.v1.AuthService.GetJwks:output_type -> auth.v1.GetJwksResponse
+	25, // [25:46] is the sub-list for method output_type
+	4,  // [4:25] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_auth_proto_init() }
@@ -2121,7 +2303,7 @@ func file_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   37,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
