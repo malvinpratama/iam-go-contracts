@@ -38,6 +38,13 @@ service AuthService {
 
   // OIDC (v0.7): public signing keys (JWKS) for relying parties to verify tokens.
   rpc GetJwks(GetJwksRequest) returns (GetJwksResponse);
+  // OIDC Authorization Code + PKCE flow.
+  rpc GetClient(GetClientRequest) returns (OAuthClient);
+  rpc CreateAuthorizationCode(CreateAuthorizationCodeRequest) returns (CreateAuthorizationCodeResponse);
+  rpc GetConsent(GetConsentRequest) returns (GetConsentResponse);
+  rpc SaveConsent(SaveConsentRequest) returns (SaveConsentResponse);
+  rpc ExchangeAuthorizationCode(ExchangeAuthorizationCodeRequest) returns (OidcTokenResponse);
+  rpc RegisterClient(RegisterClientRequest) returns (RegisterClientResponse);
 }
 
 // ── Account recovery & audit (v0.2) ─────────────────────────
@@ -237,4 +244,80 @@ message GetJwksRequest {}
 
 message GetJwksResponse {
   repeated Jwk keys = 1;
+}
+
+// A registered OAuth2 client.
+message OAuthClient {
+  string client_id = 1;
+  string name = 2;
+  repeated string redirect_uris = 3;
+  repeated string scopes = 4;
+  repeated string grant_types = 5;
+  bool is_confidential = 6;
+}
+
+message GetClientRequest {
+  string client_id = 1;
+}
+
+message CreateAuthorizationCodeRequest {
+  string client_id = 1;
+  string user_id = 2;
+  string redirect_uri = 3;
+  string scope = 4;
+  string code_challenge = 5;
+  string code_challenge_method = 6;
+  string nonce = 7;
+}
+
+message CreateAuthorizationCodeResponse {
+  string code = 1;
+}
+
+message GetConsentRequest {
+  string user_id = 1;
+  string client_id = 2;
+}
+
+message GetConsentResponse {
+  repeated string scopes = 1; // previously granted scopes (empty if none)
+}
+
+message SaveConsentRequest {
+  string user_id = 1;
+  string client_id = 2;
+  repeated string scopes = 3;
+}
+
+message SaveConsentResponse {
+  bool success = 1;
+}
+
+message ExchangeAuthorizationCodeRequest {
+  string client_id = 1;
+  string client_secret = 2; // empty for public (PKCE) clients
+  string code = 3;
+  string redirect_uri = 4;
+  string code_verifier = 5; // PKCE
+}
+
+message OidcTokenResponse {
+  string access_token = 1;
+  string id_token = 2;
+  string refresh_token = 3;
+  int64 expires_in = 4;
+  string token_type = 5; // "Bearer"
+  string scope = 6;
+}
+
+message RegisterClientRequest {
+  string name = 1;
+  repeated string redirect_uris = 2;
+  repeated string scopes = 3;
+  bool is_confidential = 4;
+}
+
+message RegisterClientResponse {
+  string client_id = 1;
+  string client_secret = 2; // returned once (plaintext) for confidential clients
 }
