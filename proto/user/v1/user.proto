@@ -10,6 +10,8 @@ service UserService {
   rpc GetProfile(GetProfileRequest) returns (Profile);
   rpc UpdateProfile(UpdateProfileRequest) returns (Profile);
   rpc DeleteProfile(DeleteProfileRequest) returns (DeleteProfileResponse);
+  // RestoreProfile reverses a soft-delete (v0.9).
+  rpc RestoreProfile(RestoreProfileRequest) returns (DeleteProfileResponse);
   rpc ListProfiles(ListProfilesRequest) returns (ListProfilesResponse);
 }
 
@@ -42,6 +44,11 @@ message UpdateProfileRequest {
 }
 
 message DeleteProfileRequest {
+  string user_id = 1;
+  bool hard = 2; // v0.9: true = permanent delete; false (default) = soft-delete
+}
+
+message RestoreProfileRequest {
   string user_id = 1;
 }
 
