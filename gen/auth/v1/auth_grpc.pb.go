@@ -39,6 +39,7 @@ const (
 	AuthService_RequestPasswordReset_FullMethodName     = "/auth.v1.AuthService/RequestPasswordReset"
 	AuthService_ResetPassword_FullMethodName            = "/auth.v1.AuthService/ResetPassword"
 	AuthService_ListAuditEvents_FullMethodName          = "/auth.v1.AuthService/ListAuditEvents"
+	AuthService_GetJwks_FullMethodName                  = "/auth.v1.AuthService/GetJwks"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -73,6 +74,8 @@ type AuthServiceClient interface {
 	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*GenericResponse, error)
 	// Audit log (v0.2)
 	ListAuditEvents(ctx context.Context, in *ListAuditEventsRequest, opts ...grpc.CallOption) (*ListAuditEventsResponse, error)
+	// OIDC (v0.7): public signing keys (JWKS) for relying parties to verify tokens.
+	GetJwks(ctx context.Context, in *GetJwksRequest, opts ...grpc.CallOption) (*GetJwksResponse, error)
 }
 
 type authServiceClient struct {
@@ -283,6 +286,16 @@ func (c *authServiceClient) ListAuditEvents(ctx context.Context, in *ListAuditEv
 	return out, nil
 }
 
+func (c *authServiceClient) GetJwks(ctx context.Context, in *GetJwksRequest, opts ...grpc.CallOption) (*GetJwksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetJwksResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetJwks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -315,6 +328,8 @@ type AuthServiceServer interface {
 	ResetPassword(context.Context, *ResetPasswordRequest) (*GenericResponse, error)
 	// Audit log (v0.2)
 	ListAuditEvents(context.Context, *ListAuditEventsRequest) (*ListAuditEventsResponse, error)
+	// OIDC (v0.7): public signing keys (JWKS) for relying parties to verify tokens.
+	GetJwks(context.Context, *GetJwksRequest) (*GetJwksResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -384,6 +399,9 @@ func (UnimplementedAuthServiceServer) ResetPassword(context.Context, *ResetPassw
 }
 func (UnimplementedAuthServiceServer) ListAuditEvents(context.Context, *ListAuditEventsRequest) (*ListAuditEventsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAuditEvents not implemented")
+}
+func (UnimplementedAuthServiceServer) GetJwks(context.Context, *GetJwksRequest) (*GetJwksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetJwks not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -766,6 +784,24 @@ func _AuthService_ListAuditEvents_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GetJwks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJwksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetJwks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetJwks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetJwks(ctx, req.(*GetJwksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -852,6 +888,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAuditEvents",
 			Handler:    _AuthService_ListAuditEvents_Handler,
+		},
+		{
+			MethodName: "GetJwks",
+			Handler:    _AuthService_GetJwks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

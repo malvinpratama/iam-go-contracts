@@ -553,7 +553,7 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"GetProfile\x12\x1a.user.v1.GetProfileRequest\x1a\x10.user.v1.Profile\x12@\n" +
 	"\rUpdateProfile\x12\x1d.user.v1.UpdateProfileRequest\x1a\x10.user.v1.Profile\x12N\n" +
 	"\rDeleteProfile\x12\x1d.user.v1.DeleteProfileRequest\x1a\x1e.user.v1.DeleteProfileResponse\x12K\n" +
-	"\fListProfiles\x12\x1c.user.v1.ListProfilesRequest\x1a\x1d.user.v1.ListProfilesResponseB-Z+github.com/malvin/iam-go/gen/user/v1;userv1b\x06proto3"
+	"\fListProfiles\x12\x1c.user.v1.ListProfilesRequest\x1a\x1d.user.v1.ListProfilesResponseB>Z<github.com/malvinpratama/iam-go-contracts/gen/user/v1;userv1b\x06proto3"
 
 var (
 	file_user_v1_user_proto_rawDescOnce sync.Once
