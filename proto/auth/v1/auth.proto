@@ -35,6 +35,9 @@ service AuthService {
 
   // Audit log (v0.2)
   rpc ListAuditEvents(ListAuditEventsRequest) returns (ListAuditEventsResponse);
+
+  // OIDC (v0.7): public signing keys (JWKS) for relying parties to verify tokens.
+  rpc GetJwks(GetJwksRequest) returns (GetJwksResponse);
 }
 
 // ── Account recovery & audit (v0.2) ─────────────────────────
@@ -216,4 +219,22 @@ message RevokePermissionRequest {
 
 message RevokePermissionResponse {
   bool success = 1;
+}
+
+// ── OIDC (v0.7) ─────────────────────────────────────────────
+
+// Jwk is one public key in JWK form (RFC 7517) for an RSA signing key.
+message Jwk {
+  string kid = 1; // key id (matches the JWT header `kid`)
+  string kty = 2; // key type, e.g. "RSA"
+  string use = 3; // public key use, e.g. "sig"
+  string alg = 4; // algorithm, e.g. "RS256"
+  string n = 5;   // RSA modulus, base64url
+  string e = 6;   // RSA exponent, base64url
+}
+
+message GetJwksRequest {}
+
+message GetJwksResponse {
+  repeated Jwk keys = 1;
 }
