@@ -30,6 +30,7 @@ const (
 	AuthService_DeleteRole_FullMethodName                = "/auth.v1.AuthService/DeleteRole"
 	AuthService_ListRoles_FullMethodName                 = "/auth.v1.AuthService/ListRoles"
 	AuthService_AssignRole_FullMethodName                = "/auth.v1.AuthService/AssignRole"
+	AuthService_AssignRoleBulk_FullMethodName            = "/auth.v1.AuthService/AssignRoleBulk"
 	AuthService_RevokeRole_FullMethodName                = "/auth.v1.AuthService/RevokeRole"
 	AuthService_ListPermissions_FullMethodName           = "/auth.v1.AuthService/ListPermissions"
 	AuthService_GrantPermission_FullMethodName           = "/auth.v1.AuthService/GrantPermission"
@@ -78,6 +79,8 @@ type AuthServiceClient interface {
 	DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleResponse, error)
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
 	AssignRole(ctx context.Context, in *AssignRoleRequest, opts ...grpc.CallOption) (*AssignRoleResponse, error)
+	// AssignRoleBulk assigns one role to many users in a single call (v0.9.1).
+	AssignRoleBulk(ctx context.Context, in *AssignRoleBulkRequest, opts ...grpc.CallOption) (*AssignRoleBulkResponse, error)
 	RevokeRole(ctx context.Context, in *RevokeRoleRequest, opts ...grpc.CallOption) (*RevokeRoleResponse, error)
 	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
 	GrantPermission(ctx context.Context, in *GrantPermissionRequest, opts ...grpc.CallOption) (*GrantPermissionResponse, error)
@@ -226,6 +229,16 @@ func (c *authServiceClient) AssignRole(ctx context.Context, in *AssignRoleReques
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AssignRoleResponse)
 	err := c.cc.Invoke(ctx, AuthService_AssignRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) AssignRoleBulk(ctx context.Context, in *AssignRoleBulkRequest, opts ...grpc.CallOption) (*AssignRoleBulkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssignRoleBulkResponse)
+	err := c.cc.Invoke(ctx, AuthService_AssignRoleBulk_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -503,6 +516,8 @@ type AuthServiceServer interface {
 	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error)
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
 	AssignRole(context.Context, *AssignRoleRequest) (*AssignRoleResponse, error)
+	// AssignRoleBulk assigns one role to many users in a single call (v0.9.1).
+	AssignRoleBulk(context.Context, *AssignRoleBulkRequest) (*AssignRoleBulkResponse, error)
 	RevokeRole(context.Context, *RevokeRoleRequest) (*RevokeRoleResponse, error)
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	GrantPermission(context.Context, *GrantPermissionRequest) (*GrantPermissionResponse, error)
@@ -579,6 +594,9 @@ func (UnimplementedAuthServiceServer) ListRoles(context.Context, *ListRolesReque
 }
 func (UnimplementedAuthServiceServer) AssignRole(context.Context, *AssignRoleRequest) (*AssignRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AssignRole not implemented")
+}
+func (UnimplementedAuthServiceServer) AssignRoleBulk(context.Context, *AssignRoleBulkRequest) (*AssignRoleBulkResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AssignRoleBulk not implemented")
 }
 func (UnimplementedAuthServiceServer) RevokeRole(context.Context, *RevokeRoleRequest) (*RevokeRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RevokeRole not implemented")
@@ -870,6 +888,24 @@ func _AuthService_AssignRole_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).AssignRole(ctx, req.(*AssignRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_AssignRoleBulk_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignRoleBulkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).AssignRoleBulk(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_AssignRoleBulk_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).AssignRoleBulk(ctx, req.(*AssignRoleBulkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1374,6 +1410,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AssignRole",
 			Handler:    _AuthService_AssignRole_Handler,
+		},
+		{
+			MethodName: "AssignRoleBulk",
+			Handler:    _AuthService_AssignRoleBulk_Handler,
 		},
 		{
 			MethodName: "RevokeRole",

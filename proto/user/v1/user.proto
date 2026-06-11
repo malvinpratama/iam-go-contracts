@@ -60,6 +60,7 @@ message ListProfilesRequest {
   int32 page = 1;       // 1-based
   int32 page_size = 2;  // default 20, max 100
   string query = 3;     // optional search on display_name
+  bool deleted_only = 4; // v0.9.1: list soft-deleted profiles (for restore view)
 }
 
 message ListProfilesResponse {
