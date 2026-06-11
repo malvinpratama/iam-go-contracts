@@ -66,6 +66,11 @@ service AuthService {
 
   // Soft-delete (v0.9): RestoreUser reverses a soft DeleteUser.
   rpc RestoreUser(RestoreUserRequest) returns (GenericResponse);
+
+  // Multi-tenant (v0.10 / M6)
+  rpc ListMyMemberships(ListMembershipsRequest) returns (ListMembershipsResponse);
+  // SwitchTenant re-issues a token bound to a different tenant/project the caller belongs to.
+  rpc SwitchTenant(SwitchTenantRequest) returns (TokenPair);
 }
 
 // ── Account recovery & audit (v0.2) ─────────────────────────
@@ -171,6 +176,29 @@ message ValidateTokenResponse {
   string email = 2;
   repeated string roles = 3;
   repeated string permissions = 4;
+  // M6: the tenant/project the token is bound to (empty project = tenant-wide).
+  string tenant_id = 5;
+  string project_id = 6;
+}
+
+// ── Multi-tenant (M6) ────────────────────────────────────────
+
+message Membership {
+  string tenant_id = 1;
+  string tenant_slug = 2;
+  string tenant_name = 3;
+  string status = 4;
+}
+
+message ListMembershipsRequest {}
+
+message ListMembershipsResponse {
+  repeated Membership memberships = 1;
+}
+
+message SwitchTenantRequest {
+  string tenant_id = 1;
+  string project_id = 2; // empty = tenant-wide
 }
 
 // ── RBAC ────────────────────────────────────────────────────
