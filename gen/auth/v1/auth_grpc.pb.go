@@ -32,6 +32,7 @@ const (
 	AuthService_AssignRole_FullMethodName                = "/auth.v1.AuthService/AssignRole"
 	AuthService_AssignRoleBulk_FullMethodName            = "/auth.v1.AuthService/AssignRoleBulk"
 	AuthService_RevokeRole_FullMethodName                = "/auth.v1.AuthService/RevokeRole"
+	AuthService_GetUserRoleAssignments_FullMethodName    = "/auth.v1.AuthService/GetUserRoleAssignments"
 	AuthService_ListPermissions_FullMethodName           = "/auth.v1.AuthService/ListPermissions"
 	AuthService_GrantPermission_FullMethodName           = "/auth.v1.AuthService/GrantPermission"
 	AuthService_RevokePermission_FullMethodName          = "/auth.v1.AuthService/RevokePermission"
@@ -92,6 +93,9 @@ type AuthServiceClient interface {
 	// AssignRoleBulk assigns one role to many users in a single call (v0.9.1).
 	AssignRoleBulk(ctx context.Context, in *AssignRoleBulkRequest, opts ...grpc.CallOption) (*AssignRoleBulkResponse, error)
 	RevokeRole(ctx context.Context, in *RevokeRoleRequest, opts ...grpc.CallOption) (*RevokeRoleResponse, error)
+	// GetUserRoleAssignments lists a user's role assignments in the caller's active
+	// tenant (each with its project scope), so an admin can revoke precisely.
+	GetUserRoleAssignments(ctx context.Context, in *GetUserRoleAssignmentsRequest, opts ...grpc.CallOption) (*GetUserRoleAssignmentsResponse, error)
 	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
 	GrantPermission(ctx context.Context, in *GrantPermissionRequest, opts ...grpc.CallOption) (*GrantPermissionResponse, error)
 	RevokePermission(ctx context.Context, in *RevokePermissionRequest, opts ...grpc.CallOption) (*RevokePermissionResponse, error)
@@ -275,6 +279,16 @@ func (c *authServiceClient) RevokeRole(ctx context.Context, in *RevokeRoleReques
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RevokeRoleResponse)
 	err := c.cc.Invoke(ctx, AuthService_RevokeRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) GetUserRoleAssignments(ctx context.Context, in *GetUserRoleAssignmentsRequest, opts ...grpc.CallOption) (*GetUserRoleAssignmentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserRoleAssignmentsResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetUserRoleAssignments_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -645,6 +659,9 @@ type AuthServiceServer interface {
 	// AssignRoleBulk assigns one role to many users in a single call (v0.9.1).
 	AssignRoleBulk(context.Context, *AssignRoleBulkRequest) (*AssignRoleBulkResponse, error)
 	RevokeRole(context.Context, *RevokeRoleRequest) (*RevokeRoleResponse, error)
+	// GetUserRoleAssignments lists a user's role assignments in the caller's active
+	// tenant (each with its project scope), so an admin can revoke precisely.
+	GetUserRoleAssignments(context.Context, *GetUserRoleAssignmentsRequest) (*GetUserRoleAssignmentsResponse, error)
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	GrantPermission(context.Context, *GrantPermissionRequest) (*GrantPermissionResponse, error)
 	RevokePermission(context.Context, *RevokePermissionRequest) (*RevokePermissionResponse, error)
@@ -742,6 +759,9 @@ func (UnimplementedAuthServiceServer) AssignRoleBulk(context.Context, *AssignRol
 }
 func (UnimplementedAuthServiceServer) RevokeRole(context.Context, *RevokeRoleRequest) (*RevokeRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RevokeRole not implemented")
+}
+func (UnimplementedAuthServiceServer) GetUserRoleAssignments(context.Context, *GetUserRoleAssignmentsRequest) (*GetUserRoleAssignmentsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserRoleAssignments not implemented")
 }
 func (UnimplementedAuthServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPermissions not implemented")
@@ -1096,6 +1116,24 @@ func _AuthService_RevokeRole_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).RevokeRole(ctx, req.(*RevokeRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_GetUserRoleAssignments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserRoleAssignmentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetUserRoleAssignments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetUserRoleAssignments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetUserRoleAssignments(ctx, req.(*GetUserRoleAssignmentsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1770,6 +1808,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RevokeRole",
 			Handler:    _AuthService_RevokeRole_Handler,
+		},
+		{
+			MethodName: "GetUserRoleAssignments",
+			Handler:    _AuthService_GetUserRoleAssignments_Handler,
 		},
 		{
 			MethodName: "ListPermissions",
