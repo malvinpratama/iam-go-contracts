@@ -59,6 +59,13 @@ const (
 	AuthService_RestoreUser_FullMethodName               = "/auth.v1.AuthService/RestoreUser"
 	AuthService_ListMyMemberships_FullMethodName         = "/auth.v1.AuthService/ListMyMemberships"
 	AuthService_SwitchTenant_FullMethodName              = "/auth.v1.AuthService/SwitchTenant"
+	AuthService_CreateTenant_FullMethodName              = "/auth.v1.AuthService/CreateTenant"
+	AuthService_ListTenants_FullMethodName               = "/auth.v1.AuthService/ListTenants"
+	AuthService_CreateProject_FullMethodName             = "/auth.v1.AuthService/CreateProject"
+	AuthService_ListProjects_FullMethodName              = "/auth.v1.AuthService/ListProjects"
+	AuthService_AddMember_FullMethodName                 = "/auth.v1.AuthService/AddMember"
+	AuthService_RemoveMember_FullMethodName              = "/auth.v1.AuthService/RemoveMember"
+	AuthService_ListMembers_FullMethodName               = "/auth.v1.AuthService/ListMembers"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -124,6 +131,16 @@ type AuthServiceClient interface {
 	ListMyMemberships(ctx context.Context, in *ListMembershipsRequest, opts ...grpc.CallOption) (*ListMembershipsResponse, error)
 	// SwitchTenant re-issues a token bound to a different tenant/project the caller belongs to.
 	SwitchTenant(ctx context.Context, in *SwitchTenantRequest, opts ...grpc.CallOption) (*TokenPair, error)
+	// Tenant / project / member administration (M6.4). Project/member ops are
+	// scoped to the caller's active tenant (from the token); tenant ops are
+	// platform-level (require tenant:write / tenant:read).
+	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*Tenant, error)
+	ListTenants(ctx context.Context, in *ListTenantsRequest, opts ...grpc.CallOption) (*ListTenantsResponse, error)
+	CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*Project, error)
+	ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error)
+	AddMember(ctx context.Context, in *AddMemberRequest, opts ...grpc.CallOption) (*Member, error)
+	RemoveMember(ctx context.Context, in *RemoveMemberRequest, opts ...grpc.CallOption) (*RemoveMemberResponse, error)
+	ListMembers(ctx context.Context, in *ListMembersRequest, opts ...grpc.CallOption) (*ListMembersResponse, error)
 }
 
 type authServiceClient struct {
@@ -534,6 +551,76 @@ func (c *authServiceClient) SwitchTenant(ctx context.Context, in *SwitchTenantRe
 	return out, nil
 }
 
+func (c *authServiceClient) CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*Tenant, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Tenant)
+	err := c.cc.Invoke(ctx, AuthService_CreateTenant_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ListTenants(ctx context.Context, in *ListTenantsRequest, opts ...grpc.CallOption) (*ListTenantsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTenantsResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListTenants_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*Project, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Project)
+	err := c.cc.Invoke(ctx, AuthService_CreateProject_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListProjectsResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListProjects_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) AddMember(ctx context.Context, in *AddMemberRequest, opts ...grpc.CallOption) (*Member, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Member)
+	err := c.cc.Invoke(ctx, AuthService_AddMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) RemoveMember(ctx context.Context, in *RemoveMemberRequest, opts ...grpc.CallOption) (*RemoveMemberResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveMemberResponse)
+	err := c.cc.Invoke(ctx, AuthService_RemoveMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ListMembers(ctx context.Context, in *ListMembersRequest, opts ...grpc.CallOption) (*ListMembersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMembersResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListMembers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -597,6 +684,16 @@ type AuthServiceServer interface {
 	ListMyMemberships(context.Context, *ListMembershipsRequest) (*ListMembershipsResponse, error)
 	// SwitchTenant re-issues a token bound to a different tenant/project the caller belongs to.
 	SwitchTenant(context.Context, *SwitchTenantRequest) (*TokenPair, error)
+	// Tenant / project / member administration (M6.4). Project/member ops are
+	// scoped to the caller's active tenant (from the token); tenant ops are
+	// platform-level (require tenant:write / tenant:read).
+	CreateTenant(context.Context, *CreateTenantRequest) (*Tenant, error)
+	ListTenants(context.Context, *ListTenantsRequest) (*ListTenantsResponse, error)
+	CreateProject(context.Context, *CreateProjectRequest) (*Project, error)
+	ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error)
+	AddMember(context.Context, *AddMemberRequest) (*Member, error)
+	RemoveMember(context.Context, *RemoveMemberRequest) (*RemoveMemberResponse, error)
+	ListMembers(context.Context, *ListMembersRequest) (*ListMembersResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -726,6 +823,27 @@ func (UnimplementedAuthServiceServer) ListMyMemberships(context.Context, *ListMe
 }
 func (UnimplementedAuthServiceServer) SwitchTenant(context.Context, *SwitchTenantRequest) (*TokenPair, error) {
 	return nil, status.Error(codes.Unimplemented, "method SwitchTenant not implemented")
+}
+func (UnimplementedAuthServiceServer) CreateTenant(context.Context, *CreateTenantRequest) (*Tenant, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateTenant not implemented")
+}
+func (UnimplementedAuthServiceServer) ListTenants(context.Context, *ListTenantsRequest) (*ListTenantsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListTenants not implemented")
+}
+func (UnimplementedAuthServiceServer) CreateProject(context.Context, *CreateProjectRequest) (*Project, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateProject not implemented")
+}
+func (UnimplementedAuthServiceServer) ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListProjects not implemented")
+}
+func (UnimplementedAuthServiceServer) AddMember(context.Context, *AddMemberRequest) (*Member, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddMember not implemented")
+}
+func (UnimplementedAuthServiceServer) RemoveMember(context.Context, *RemoveMemberRequest) (*RemoveMemberResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveMember not implemented")
+}
+func (UnimplementedAuthServiceServer) ListMembers(context.Context, *ListMembersRequest) (*ListMembersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMembers not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -1468,6 +1586,132 @@ func _AuthService_SwitchTenant_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_CreateTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTenantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).CreateTenant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_CreateTenant_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).CreateTenant(ctx, req.(*CreateTenantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ListTenants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTenantsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListTenants(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListTenants_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListTenants(ctx, req.(*ListTenantsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_CreateProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).CreateProject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_CreateProject_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).CreateProject(ctx, req.(*CreateProjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ListProjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListProjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListProjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListProjects_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListProjects(ctx, req.(*ListProjectsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_AddMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddMemberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).AddMember(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_AddMember_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).AddMember(ctx, req.(*AddMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_RemoveMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveMemberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RemoveMember(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_RemoveMember_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RemoveMember(ctx, req.(*RemoveMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ListMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMembersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListMembers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListMembers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListMembers(ctx, req.(*ListMembersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1634,6 +1878,34 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SwitchTenant",
 			Handler:    _AuthService_SwitchTenant_Handler,
+		},
+		{
+			MethodName: "CreateTenant",
+			Handler:    _AuthService_CreateTenant_Handler,
+		},
+		{
+			MethodName: "ListTenants",
+			Handler:    _AuthService_ListTenants_Handler,
+		},
+		{
+			MethodName: "CreateProject",
+			Handler:    _AuthService_CreateProject_Handler,
+		},
+		{
+			MethodName: "ListProjects",
+			Handler:    _AuthService_ListProjects_Handler,
+		},
+		{
+			MethodName: "AddMember",
+			Handler:    _AuthService_AddMember_Handler,
+		},
+		{
+			MethodName: "RemoveMember",
+			Handler:    _AuthService_RemoveMember_Handler,
+		},
+		{
+			MethodName: "ListMembers",
+			Handler:    _AuthService_ListMembers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
