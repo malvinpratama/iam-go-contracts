@@ -562,6 +562,94 @@ func (x *ListProfilesResponse) GetPageSize() int32 {
 	return 0
 }
 
+type GetProfilesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserIds       []string               `protobuf:"bytes,1,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProfilesRequest) Reset() {
+	*x = GetProfilesRequest{}
+	mi := &file_user_v1_user_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProfilesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProfilesRequest) ProtoMessage() {}
+
+func (x *GetProfilesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProfilesRequest.ProtoReflect.Descriptor instead.
+func (*GetProfilesRequest) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetProfilesRequest) GetUserIds() []string {
+	if x != nil {
+		return x.UserIds
+	}
+	return nil
+}
+
+type GetProfilesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profiles      []*Profile             `protobuf:"bytes,1,rep,name=profiles,proto3" json:"profiles,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProfilesResponse) Reset() {
+	*x = GetProfilesResponse{}
+	mi := &file_user_v1_user_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProfilesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProfilesResponse) ProtoMessage() {}
+
+func (x *GetProfilesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProfilesResponse.ProtoReflect.Descriptor instead.
+func (*GetProfilesResponse) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetProfilesResponse) GetProfiles() []*Profile {
+	if x != nil {
+		return x.Profiles
+	}
+	return nil
+}
+
 var File_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_user_v1_user_proto_rawDesc = "" +
@@ -610,7 +698,11 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\bprofiles\x18\x01 \x03(\v2\x10.user.v1.ProfileR\bprofiles\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize2\xbc\x03\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"/\n" +
+	"\x12GetProfilesRequest\x12\x19\n" +
+	"\buser_ids\x18\x01 \x03(\tR\auserIds\"C\n" +
+	"\x13GetProfilesResponse\x12,\n" +
+	"\bprofiles\x18\x01 \x03(\v2\x10.user.v1.ProfileR\bprofiles2\x86\x04\n" +
 	"\vUserService\x12@\n" +
 	"\rCreateProfile\x12\x1d.user.v1.CreateProfileRequest\x1a\x10.user.v1.Profile\x12:\n" +
 	"\n" +
@@ -618,7 +710,8 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\rUpdateProfile\x12\x1d.user.v1.UpdateProfileRequest\x1a\x10.user.v1.Profile\x12N\n" +
 	"\rDeleteProfile\x12\x1d.user.v1.DeleteProfileRequest\x1a\x1e.user.v1.DeleteProfileResponse\x12P\n" +
 	"\x0eRestoreProfile\x12\x1e.user.v1.RestoreProfileRequest\x1a\x1e.user.v1.DeleteProfileResponse\x12K\n" +
-	"\fListProfiles\x12\x1c.user.v1.ListProfilesRequest\x1a\x1d.user.v1.ListProfilesResponseB>Z<github.com/malvinpratama/iam-go-contracts/gen/user/v1;userv1b\x06proto3"
+	"\fListProfiles\x12\x1c.user.v1.ListProfilesRequest\x1a\x1d.user.v1.ListProfilesResponse\x12H\n" +
+	"\vGetProfiles\x12\x1b.user.v1.GetProfilesRequest\x1a\x1c.user.v1.GetProfilesResponseB>Z<github.com/malvinpratama/iam-go-contracts/gen/user/v1;userv1b\x06proto3"
 
 var (
 	file_user_v1_user_proto_rawDescOnce sync.Once
@@ -632,7 +725,7 @@ func file_user_v1_user_proto_rawDescGZIP() []byte {
 	return file_user_v1_user_proto_rawDescData
 }
 
-var file_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_user_v1_user_proto_goTypes = []any{
 	(*Profile)(nil),               // 0: user.v1.Profile
 	(*CreateProfileRequest)(nil),  // 1: user.v1.CreateProfileRequest
@@ -643,26 +736,31 @@ var file_user_v1_user_proto_goTypes = []any{
 	(*DeleteProfileResponse)(nil), // 6: user.v1.DeleteProfileResponse
 	(*ListProfilesRequest)(nil),   // 7: user.v1.ListProfilesRequest
 	(*ListProfilesResponse)(nil),  // 8: user.v1.ListProfilesResponse
+	(*GetProfilesRequest)(nil),    // 9: user.v1.GetProfilesRequest
+	(*GetProfilesResponse)(nil),   // 10: user.v1.GetProfilesResponse
 }
 var file_user_v1_user_proto_depIdxs = []int32{
-	0, // 0: user.v1.ListProfilesResponse.profiles:type_name -> user.v1.Profile
-	1, // 1: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
-	2, // 2: user.v1.UserService.GetProfile:input_type -> user.v1.GetProfileRequest
-	3, // 3: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
-	4, // 4: user.v1.UserService.DeleteProfile:input_type -> user.v1.DeleteProfileRequest
-	5, // 5: user.v1.UserService.RestoreProfile:input_type -> user.v1.RestoreProfileRequest
-	7, // 6: user.v1.UserService.ListProfiles:input_type -> user.v1.ListProfilesRequest
-	0, // 7: user.v1.UserService.CreateProfile:output_type -> user.v1.Profile
-	0, // 8: user.v1.UserService.GetProfile:output_type -> user.v1.Profile
-	0, // 9: user.v1.UserService.UpdateProfile:output_type -> user.v1.Profile
-	6, // 10: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
-	6, // 11: user.v1.UserService.RestoreProfile:output_type -> user.v1.DeleteProfileResponse
-	8, // 12: user.v1.UserService.ListProfiles:output_type -> user.v1.ListProfilesResponse
-	7, // [7:13] is the sub-list for method output_type
-	1, // [1:7] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0,  // 0: user.v1.ListProfilesResponse.profiles:type_name -> user.v1.Profile
+	0,  // 1: user.v1.GetProfilesResponse.profiles:type_name -> user.v1.Profile
+	1,  // 2: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
+	2,  // 3: user.v1.UserService.GetProfile:input_type -> user.v1.GetProfileRequest
+	3,  // 4: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
+	4,  // 5: user.v1.UserService.DeleteProfile:input_type -> user.v1.DeleteProfileRequest
+	5,  // 6: user.v1.UserService.RestoreProfile:input_type -> user.v1.RestoreProfileRequest
+	7,  // 7: user.v1.UserService.ListProfiles:input_type -> user.v1.ListProfilesRequest
+	9,  // 8: user.v1.UserService.GetProfiles:input_type -> user.v1.GetProfilesRequest
+	0,  // 9: user.v1.UserService.CreateProfile:output_type -> user.v1.Profile
+	0,  // 10: user.v1.UserService.GetProfile:output_type -> user.v1.Profile
+	0,  // 11: user.v1.UserService.UpdateProfile:output_type -> user.v1.Profile
+	6,  // 12: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
+	6,  // 13: user.v1.UserService.RestoreProfile:output_type -> user.v1.DeleteProfileResponse
+	8,  // 14: user.v1.UserService.ListProfiles:output_type -> user.v1.ListProfilesResponse
+	10, // 15: user.v1.UserService.GetProfiles:output_type -> user.v1.GetProfilesResponse
+	9,  // [9:16] is the sub-list for method output_type
+	2,  // [2:9] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_user_v1_user_proto_init() }
@@ -677,7 +775,7 @@ func file_user_v1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_v1_user_proto_rawDesc), len(file_user_v1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
