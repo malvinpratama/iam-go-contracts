@@ -22,6 +22,8 @@ service AuthService {
   rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse);
   rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
   rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse);
+  // AssignRoleBulk assigns one role to many users in a single call (v0.9.1).
+  rpc AssignRoleBulk(AssignRoleBulkRequest) returns (AssignRoleBulkResponse);
   rpc RevokeRole(RevokeRoleRequest) returns (RevokeRoleResponse);
   rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse);
   rpc GrantPermission(GrantPermissionRequest) returns (GrantPermissionResponse);
@@ -215,6 +217,16 @@ message AssignRoleRequest {
 
 message AssignRoleResponse {
   bool success = 1;
+}
+
+message AssignRoleBulkRequest {
+  string role_name = 1;
+  repeated string user_ids = 2;
+}
+
+message AssignRoleBulkResponse {
+  int32 assigned = 1;          // how many succeeded
+  repeated string failed = 2;  // user_ids that failed (invalid / not found)
 }
 
 message RevokeRoleRequest {
