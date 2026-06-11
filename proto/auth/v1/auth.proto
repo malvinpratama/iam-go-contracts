@@ -71,6 +71,17 @@ service AuthService {
   rpc ListMyMemberships(ListMembershipsRequest) returns (ListMembershipsResponse);
   // SwitchTenant re-issues a token bound to a different tenant/project the caller belongs to.
   rpc SwitchTenant(SwitchTenantRequest) returns (TokenPair);
+
+  // Tenant / project / member administration (M6.4). Project/member ops are
+  // scoped to the caller's active tenant (from the token); tenant ops are
+  // platform-level (require tenant:write / tenant:read).
+  rpc CreateTenant(CreateTenantRequest) returns (Tenant);
+  rpc ListTenants(ListTenantsRequest) returns (ListTenantsResponse);
+  rpc CreateProject(CreateProjectRequest) returns (Project);
+  rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse);
+  rpc AddMember(AddMemberRequest) returns (Member);
+  rpc RemoveMember(RemoveMemberRequest) returns (RemoveMemberResponse);
+  rpc ListMembers(ListMembersRequest) returns (ListMembersResponse);
 }
 
 // ── Account recovery & audit (v0.2) ─────────────────────────
@@ -199,6 +210,67 @@ message ListMembershipsResponse {
 message SwitchTenantRequest {
   string tenant_id = 1;
   string project_id = 2; // empty = tenant-wide
+}
+
+// Tenant / project / member administration (M6.4).
+message Tenant {
+  string id = 1;
+  string slug = 2;
+  string name = 3;
+  string status = 4;
+}
+
+message CreateTenantRequest {
+  string slug = 1;
+  string name = 2;
+}
+
+message ListTenantsRequest {}
+
+message ListTenantsResponse {
+  repeated Tenant tenants = 1;
+}
+
+message Project {
+  string id = 1;
+  string tenant_id = 2;
+  string slug = 3;
+  string name = 4;
+}
+
+message CreateProjectRequest {
+  string slug = 1;
+  string name = 2;
+}
+
+message ListProjectsRequest {}
+
+message ListProjectsResponse {
+  repeated Project projects = 1;
+}
+
+message Member {
+  string user_id = 1;
+  string email = 2;
+  string status = 3;
+}
+
+message AddMemberRequest {
+  string email = 1; // tenant = caller's active tenant (from token)
+}
+
+message RemoveMemberRequest {
+  string user_id = 1;
+}
+
+message RemoveMemberResponse {
+  bool success = 1;
+}
+
+message ListMembersRequest {}
+
+message ListMembersResponse {
+  repeated Member members = 1;
 }
 
 // ── RBAC ────────────────────────────────────────────────────
