@@ -50,6 +50,7 @@ const (
 	AuthService_EnrollTotp_FullMethodName                = "/auth.v1.AuthService/EnrollTotp"
 	AuthService_ActivateTotp_FullMethodName              = "/auth.v1.AuthService/ActivateTotp"
 	AuthService_DisableTotp_FullMethodName               = "/auth.v1.AuthService/DisableTotp"
+	AuthService_GetTotpStatus_FullMethodName             = "/auth.v1.AuthService/GetTotpStatus"
 	AuthService_LoginTotp_FullMethodName                 = "/auth.v1.AuthService/LoginTotp"
 	AuthService_CreateApiKey_FullMethodName              = "/auth.v1.AuthService/CreateApiKey"
 	AuthService_ListApiKeys_FullMethodName               = "/auth.v1.AuthService/ListApiKeys"
@@ -105,6 +106,8 @@ type AuthServiceClient interface {
 	EnrollTotp(ctx context.Context, in *EnrollTotpRequest, opts ...grpc.CallOption) (*EnrollTotpResponse, error)
 	ActivateTotp(ctx context.Context, in *ActivateTotpRequest, opts ...grpc.CallOption) (*GenericResponse, error)
 	DisableTotp(ctx context.Context, in *DisableTotpRequest, opts ...grpc.CallOption) (*GenericResponse, error)
+	// GetTotpStatus reports whether 2FA is active for the caller (v0.9.1).
+	GetTotpStatus(ctx context.Context, in *GetTotpStatusRequest, opts ...grpc.CallOption) (*GetTotpStatusResponse, error)
 	// LoginTotp completes a login that returned mfa_required, using a TOTP or recovery code.
 	LoginTotp(ctx context.Context, in *LoginTotpRequest, opts ...grpc.CallOption) (*TokenPair, error)
 	// API keys (v0.9): scoped, programmatic credentials (iamk_...).
@@ -435,6 +438,16 @@ func (c *authServiceClient) DisableTotp(ctx context.Context, in *DisableTotpRequ
 	return out, nil
 }
 
+func (c *authServiceClient) GetTotpStatus(ctx context.Context, in *GetTotpStatusRequest, opts ...grpc.CallOption) (*GetTotpStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTotpStatusResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetTotpStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) LoginTotp(ctx context.Context, in *LoginTotpRequest, opts ...grpc.CallOption) (*TokenPair, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TokenPair)
@@ -542,6 +555,8 @@ type AuthServiceServer interface {
 	EnrollTotp(context.Context, *EnrollTotpRequest) (*EnrollTotpResponse, error)
 	ActivateTotp(context.Context, *ActivateTotpRequest) (*GenericResponse, error)
 	DisableTotp(context.Context, *DisableTotpRequest) (*GenericResponse, error)
+	// GetTotpStatus reports whether 2FA is active for the caller (v0.9.1).
+	GetTotpStatus(context.Context, *GetTotpStatusRequest) (*GetTotpStatusResponse, error)
 	// LoginTotp completes a login that returned mfa_required, using a TOTP or recovery code.
 	LoginTotp(context.Context, *LoginTotpRequest) (*TokenPair, error)
 	// API keys (v0.9): scoped, programmatic credentials (iamk_...).
@@ -654,6 +669,9 @@ func (UnimplementedAuthServiceServer) ActivateTotp(context.Context, *ActivateTot
 }
 func (UnimplementedAuthServiceServer) DisableTotp(context.Context, *DisableTotpRequest) (*GenericResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DisableTotp not implemented")
+}
+func (UnimplementedAuthServiceServer) GetTotpStatus(context.Context, *GetTotpStatusRequest) (*GetTotpStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTotpStatus not implemented")
 }
 func (UnimplementedAuthServiceServer) LoginTotp(context.Context, *LoginTotpRequest) (*TokenPair, error) {
 	return nil, status.Error(codes.Unimplemented, "method LoginTotp not implemented")
@@ -1252,6 +1270,24 @@ func _AuthService_DisableTotp_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GetTotpStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTotpStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetTotpStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetTotpStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetTotpStatus(ctx, req.(*GetTotpStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_LoginTotp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LoginTotpRequest)
 	if err := dec(in); err != nil {
@@ -1490,6 +1526,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DisableTotp",
 			Handler:    _AuthService_DisableTotp_Handler,
+		},
+		{
+			MethodName: "GetTotpStatus",
+			Handler:    _AuthService_GetTotpStatus_Handler,
 		},
 		{
 			MethodName: "LoginTotp",
