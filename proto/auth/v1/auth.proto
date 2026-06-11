@@ -52,6 +52,8 @@ service AuthService {
   rpc EnrollTotp(EnrollTotpRequest) returns (EnrollTotpResponse);
   rpc ActivateTotp(ActivateTotpRequest) returns (GenericResponse);
   rpc DisableTotp(DisableTotpRequest) returns (GenericResponse);
+  // GetTotpStatus reports whether 2FA is active for the caller (v0.9.1).
+  rpc GetTotpStatus(GetTotpStatusRequest) returns (GetTotpStatusResponse);
   // LoginTotp completes a login that returned mfa_required, using a TOTP or recovery code.
   rpc LoginTotp(LoginTotpRequest) returns (TokenPair);
 
@@ -370,6 +372,12 @@ message EnrollTotpResponse {
 
 message ActivateTotpRequest {
   string code = 1; // a current TOTP code, proving the authenticator is set up
+}
+
+message GetTotpStatusRequest {}
+
+message GetTotpStatusResponse {
+  bool enabled = 1;
 }
 
 message DisableTotpRequest {
