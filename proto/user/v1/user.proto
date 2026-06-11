@@ -13,6 +13,9 @@ service UserService {
   // RestoreProfile reverses a soft-delete (v0.9).
   rpc RestoreProfile(RestoreProfileRequest) returns (DeleteProfileResponse);
   rpc ListProfiles(ListProfilesRequest) returns (ListProfilesResponse);
+  // GetProfiles batch-fetches profiles by user_id (avoids N+1 when the gateway
+  // joins tenant members with their profiles).
+  rpc GetProfiles(GetProfilesRequest) returns (GetProfilesResponse);
 }
 
 message Profile {
@@ -68,4 +71,12 @@ message ListProfilesResponse {
   int32 total = 2;
   int32 page = 3;
   int32 page_size = 4;
+}
+
+message GetProfilesRequest {
+  repeated string user_ids = 1;
+}
+
+message GetProfilesResponse {
+  repeated Profile profiles = 1;
 }

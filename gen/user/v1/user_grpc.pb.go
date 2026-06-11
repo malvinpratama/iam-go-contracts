@@ -25,6 +25,7 @@ const (
 	UserService_DeleteProfile_FullMethodName  = "/user.v1.UserService/DeleteProfile"
 	UserService_RestoreProfile_FullMethodName = "/user.v1.UserService/RestoreProfile"
 	UserService_ListProfiles_FullMethodName   = "/user.v1.UserService/ListProfiles"
+	UserService_GetProfiles_FullMethodName    = "/user.v1.UserService/GetProfiles"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -40,6 +41,9 @@ type UserServiceClient interface {
 	// RestoreProfile reverses a soft-delete (v0.9).
 	RestoreProfile(ctx context.Context, in *RestoreProfileRequest, opts ...grpc.CallOption) (*DeleteProfileResponse, error)
 	ListProfiles(ctx context.Context, in *ListProfilesRequest, opts ...grpc.CallOption) (*ListProfilesResponse, error)
+	// GetProfiles batch-fetches profiles by user_id (avoids N+1 when the gateway
+	// joins tenant members with their profiles).
+	GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error)
 }
 
 type userServiceClient struct {
@@ -110,6 +114,16 @@ func (c *userServiceClient) ListProfiles(ctx context.Context, in *ListProfilesRe
 	return out, nil
 }
 
+func (c *userServiceClient) GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProfilesResponse)
+	err := c.cc.Invoke(ctx, UserService_GetProfiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -123,6 +137,9 @@ type UserServiceServer interface {
 	// RestoreProfile reverses a soft-delete (v0.9).
 	RestoreProfile(context.Context, *RestoreProfileRequest) (*DeleteProfileResponse, error)
 	ListProfiles(context.Context, *ListProfilesRequest) (*ListProfilesResponse, error)
+	// GetProfiles batch-fetches profiles by user_id (avoids N+1 when the gateway
+	// joins tenant members with their profiles).
+	GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -150,6 +167,9 @@ func (UnimplementedUserServiceServer) RestoreProfile(context.Context, *RestorePr
 }
 func (UnimplementedUserServiceServer) ListProfiles(context.Context, *ListProfilesRequest) (*ListProfilesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListProfiles not implemented")
+}
+func (UnimplementedUserServiceServer) GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProfiles not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -280,6 +300,24 @@ func _UserService_ListProfiles_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetProfiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetProfiles(ctx, req.(*GetProfilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -310,6 +348,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListProfiles",
 			Handler:    _UserService_ListProfiles_Handler,
+		},
+		{
+			MethodName: "GetProfiles",
+			Handler:    _UserService_GetProfiles_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
