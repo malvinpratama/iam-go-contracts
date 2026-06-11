@@ -25,6 +25,9 @@ service AuthService {
   // AssignRoleBulk assigns one role to many users in a single call (v0.9.1).
   rpc AssignRoleBulk(AssignRoleBulkRequest) returns (AssignRoleBulkResponse);
   rpc RevokeRole(RevokeRoleRequest) returns (RevokeRoleResponse);
+  // GetUserRoleAssignments lists a user's role assignments in the caller's active
+  // tenant (each with its project scope), so an admin can revoke precisely.
+  rpc GetUserRoleAssignments(GetUserRoleAssignmentsRequest) returns (GetUserRoleAssignmentsResponse);
   rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse);
   rpc GrantPermission(GrantPermissionRequest) returns (GrantPermissionResponse);
   rpc RevokePermission(RevokePermissionRequest) returns (RevokePermissionResponse);
@@ -315,6 +318,7 @@ message ListRolesResponse {
 message AssignRoleRequest {
   string user_id = 1;
   string role_name = 2;
+  string project_id = 3; // M6: empty = tenant-wide; set = scoped to that project
 }
 
 message AssignRoleResponse {
@@ -324,6 +328,7 @@ message AssignRoleResponse {
 message AssignRoleBulkRequest {
   string role_name = 1;
   repeated string user_ids = 2;
+  string project_id = 3; // M6: empty = tenant-wide
 }
 
 message AssignRoleBulkResponse {
@@ -334,6 +339,21 @@ message AssignRoleBulkResponse {
 message RevokeRoleRequest {
   string user_id = 1;
   string role_name = 2;
+  string project_id = 3; // M6: which assignment to remove (empty = tenant-wide)
+}
+
+message GetUserRoleAssignmentsRequest {
+  string user_id = 1;
+}
+
+message RoleAssignment {
+  string role = 1;
+  string project_id = 2;   // empty = tenant-wide
+  string project_slug = 3; // empty = tenant-wide
+}
+
+message GetUserRoleAssignmentsResponse {
+  repeated RoleAssignment assignments = 1;
 }
 
 message RevokeRoleResponse {
