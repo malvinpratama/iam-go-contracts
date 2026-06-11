@@ -57,6 +57,8 @@ const (
 	AuthService_RevokeApiKey_FullMethodName              = "/auth.v1.AuthService/RevokeApiKey"
 	AuthService_ValidateApiKey_FullMethodName            = "/auth.v1.AuthService/ValidateApiKey"
 	AuthService_RestoreUser_FullMethodName               = "/auth.v1.AuthService/RestoreUser"
+	AuthService_ListMyMemberships_FullMethodName         = "/auth.v1.AuthService/ListMyMemberships"
+	AuthService_SwitchTenant_FullMethodName              = "/auth.v1.AuthService/SwitchTenant"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -118,6 +120,10 @@ type AuthServiceClient interface {
 	ValidateApiKey(ctx context.Context, in *ValidateApiKeyRequest, opts ...grpc.CallOption) (*ValidateApiKeyResponse, error)
 	// Soft-delete (v0.9): RestoreUser reverses a soft DeleteUser.
 	RestoreUser(ctx context.Context, in *RestoreUserRequest, opts ...grpc.CallOption) (*GenericResponse, error)
+	// Multi-tenant (v0.10 / M6)
+	ListMyMemberships(ctx context.Context, in *ListMembershipsRequest, opts ...grpc.CallOption) (*ListMembershipsResponse, error)
+	// SwitchTenant re-issues a token bound to a different tenant/project the caller belongs to.
+	SwitchTenant(ctx context.Context, in *SwitchTenantRequest, opts ...grpc.CallOption) (*TokenPair, error)
 }
 
 type authServiceClient struct {
@@ -508,6 +514,26 @@ func (c *authServiceClient) RestoreUser(ctx context.Context, in *RestoreUserRequ
 	return out, nil
 }
 
+func (c *authServiceClient) ListMyMemberships(ctx context.Context, in *ListMembershipsRequest, opts ...grpc.CallOption) (*ListMembershipsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMembershipsResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListMyMemberships_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) SwitchTenant(ctx context.Context, in *SwitchTenantRequest, opts ...grpc.CallOption) (*TokenPair, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TokenPair)
+	err := c.cc.Invoke(ctx, AuthService_SwitchTenant_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -567,6 +593,10 @@ type AuthServiceServer interface {
 	ValidateApiKey(context.Context, *ValidateApiKeyRequest) (*ValidateApiKeyResponse, error)
 	// Soft-delete (v0.9): RestoreUser reverses a soft DeleteUser.
 	RestoreUser(context.Context, *RestoreUserRequest) (*GenericResponse, error)
+	// Multi-tenant (v0.10 / M6)
+	ListMyMemberships(context.Context, *ListMembershipsRequest) (*ListMembershipsResponse, error)
+	// SwitchTenant re-issues a token bound to a different tenant/project the caller belongs to.
+	SwitchTenant(context.Context, *SwitchTenantRequest) (*TokenPair, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -690,6 +720,12 @@ func (UnimplementedAuthServiceServer) ValidateApiKey(context.Context, *ValidateA
 }
 func (UnimplementedAuthServiceServer) RestoreUser(context.Context, *RestoreUserRequest) (*GenericResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RestoreUser not implemented")
+}
+func (UnimplementedAuthServiceServer) ListMyMemberships(context.Context, *ListMembershipsRequest) (*ListMembershipsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyMemberships not implemented")
+}
+func (UnimplementedAuthServiceServer) SwitchTenant(context.Context, *SwitchTenantRequest) (*TokenPair, error) {
+	return nil, status.Error(codes.Unimplemented, "method SwitchTenant not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -1396,6 +1432,42 @@ func _AuthService_RestoreUser_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_ListMyMemberships_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMembershipsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListMyMemberships(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListMyMemberships_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListMyMemberships(ctx, req.(*ListMembershipsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_SwitchTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SwitchTenantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).SwitchTenant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_SwitchTenant_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).SwitchTenant(ctx, req.(*SwitchTenantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1554,6 +1626,14 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RestoreUser",
 			Handler:    _AuthService_RestoreUser_Handler,
+		},
+		{
+			MethodName: "ListMyMemberships",
+			Handler:    _AuthService_ListMyMemberships_Handler,
+		},
+		{
+			MethodName: "SwitchTenant",
+			Handler:    _AuthService_SwitchTenant_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
