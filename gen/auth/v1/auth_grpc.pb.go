@@ -40,6 +40,7 @@ const (
 	AuthService_VerifyEmail_FullMethodName               = "/auth.v1.AuthService/VerifyEmail"
 	AuthService_RequestPasswordReset_FullMethodName      = "/auth.v1.AuthService/RequestPasswordReset"
 	AuthService_ResetPassword_FullMethodName             = "/auth.v1.AuthService/ResetPassword"
+	AuthService_ChangePassword_FullMethodName            = "/auth.v1.AuthService/ChangePassword"
 	AuthService_ListAuditEvents_FullMethodName           = "/auth.v1.AuthService/ListAuditEvents"
 	AuthService_GetJwks_FullMethodName                   = "/auth.v1.AuthService/GetJwks"
 	AuthService_GetClient_FullMethodName                 = "/auth.v1.AuthService/GetClient"
@@ -104,6 +105,9 @@ type AuthServiceClient interface {
 	VerifyEmail(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*GenericResponse, error)
 	RequestPasswordReset(ctx context.Context, in *EmailRequest, opts ...grpc.CallOption) (*DevTokenResponse, error)
 	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*GenericResponse, error)
+	// Authenticated self-service password change (verifies the current password);
+	// no email/reset-token round-trip.
+	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*GenericResponse, error)
 	// Audit log (v0.2)
 	ListAuditEvents(ctx context.Context, in *ListAuditEventsRequest, opts ...grpc.CallOption) (*ListAuditEventsResponse, error)
 	// OIDC (v0.7): public signing keys (JWKS) for relying parties to verify tokens.
@@ -359,6 +363,16 @@ func (c *authServiceClient) ResetPassword(ctx context.Context, in *ResetPassword
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GenericResponse)
 	err := c.cc.Invoke(ctx, AuthService_ResetPassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*GenericResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenericResponse)
+	err := c.cc.Invoke(ctx, AuthService_ChangePassword_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -670,6 +684,9 @@ type AuthServiceServer interface {
 	VerifyEmail(context.Context, *TokenRequest) (*GenericResponse, error)
 	RequestPasswordReset(context.Context, *EmailRequest) (*DevTokenResponse, error)
 	ResetPassword(context.Context, *ResetPasswordRequest) (*GenericResponse, error)
+	// Authenticated self-service password change (verifies the current password);
+	// no email/reset-token round-trip.
+	ChangePassword(context.Context, *ChangePasswordRequest) (*GenericResponse, error)
 	// Audit log (v0.2)
 	ListAuditEvents(context.Context, *ListAuditEventsRequest) (*ListAuditEventsResponse, error)
 	// OIDC (v0.7): public signing keys (JWKS) for relying parties to verify tokens.
@@ -783,6 +800,9 @@ func (UnimplementedAuthServiceServer) RequestPasswordReset(context.Context, *Ema
 }
 func (UnimplementedAuthServiceServer) ResetPassword(context.Context, *ResetPasswordRequest) (*GenericResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResetPassword not implemented")
+}
+func (UnimplementedAuthServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*GenericResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ChangePassword not implemented")
 }
 func (UnimplementedAuthServiceServer) ListAuditEvents(context.Context, *ListAuditEventsRequest) (*ListAuditEventsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAuditEvents not implemented")
@@ -1260,6 +1280,24 @@ func _AuthService_ResetPassword_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).ResetPassword(ctx, req.(*ResetPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ChangePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ChangePassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ChangePassword(ctx, req.(*ChangePasswordRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1840,6 +1878,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResetPassword",
 			Handler:    _AuthService_ResetPassword_Handler,
+		},
+		{
+			MethodName: "ChangePassword",
+			Handler:    _AuthService_ChangePassword_Handler,
 		},
 		{
 			MethodName: "ListAuditEvents",

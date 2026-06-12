@@ -37,6 +37,9 @@ service AuthService {
   rpc VerifyEmail(TokenRequest) returns (GenericResponse);
   rpc RequestPasswordReset(EmailRequest) returns (DevTokenResponse);
   rpc ResetPassword(ResetPasswordRequest) returns (GenericResponse);
+  // Authenticated self-service password change (verifies the current password);
+  // no email/reset-token round-trip.
+  rpc ChangePassword(ChangePasswordRequest) returns (GenericResponse);
 
   // Audit log (v0.2)
   rpc ListAuditEvents(ListAuditEventsRequest) returns (ListAuditEventsResponse);
@@ -110,6 +113,11 @@ message GenericResponse {
 
 message ResetPasswordRequest {
   string token = 1;
+  string new_password = 2;
+}
+
+message ChangePasswordRequest {
+  string old_password = 1;
   string new_password = 2;
 }
 
